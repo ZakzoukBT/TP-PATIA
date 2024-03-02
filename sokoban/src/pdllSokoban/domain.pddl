@@ -4,11 +4,11 @@
 (:types cible sol - environnement
         boite agent - objet)
 (:predicates 
-    (estSur ?objet ?environnement)
+    (estSur ?objet - objet ?environnement - environnement)
     (aVoisinDroit ?x - environnement ?y - environnement)
     (aVoisinHaut ?x - environnement ?y - environnement)
     (cibleAtteinte ?cible - cible)
-    (estLibre ?environnement)
+    (estLibre ?environnement - environnement)
 )
 
 (:action deplacementDroit
