@@ -9,7 +9,7 @@ import org.json.simple.parser.*;
 public class Parser {
     //Mettre le chemin relatif vers le fichier JSON
     private String file;
-    private String PDDLfile = "./sokoban/src/pddlSokoban/parseProblem.pddl";
+    private String PDDLfile = "./src/pddlSokoban/problemPDLL.pddl";
 
     public void setJsonFile(String fileName){
         file = fileName;
@@ -18,8 +18,8 @@ public class Parser {
     public void createFile(){
         try {
             //Il faut stocker le fichier au bon endroit !
-            File myObj = new File(PDDLfile);
-            FileWriter fw = new FileWriter(myObj);
+            // 
+            FileWriter fw = new FileWriter(PDDLfile);
             fw.write("(define (problem parsedProblem)\n(:domain sokoban)\n");
             fw.close();
         } catch (IOException e) {
@@ -160,7 +160,7 @@ public class Parser {
     }
 
     public String writeGoalConditions(String[][] objects){
-        String res = "\n(: goal (and ";
+        String res = "\n(:goal (and ";
         for(int i=0; i<objects.length; i++){
             for(int j=0; j < objects[i].length; j++){
                 if(objects[i][j] != null) {
@@ -170,7 +170,7 @@ public class Parser {
                 }
             }
         }
-        res += ")\n)";
+        res += ")\n)\n)";
         return res;
     }
 
@@ -188,7 +188,7 @@ public class Parser {
 
     public static void main(String[] args) {
         Parser p = new Parser();
-        p.setJsonFile("./sokoban/config/test1.json");
+        p.setJsonFile("./config/test1.json");
         try{
             p.parseProblemJSONToPDDL();
         } catch (Exception e) {
