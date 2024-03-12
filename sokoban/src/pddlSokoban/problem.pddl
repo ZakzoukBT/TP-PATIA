@@ -1,8 +1,7 @@
 (define (problem problemSokoban)
 (:domain sokoban)
 (:objects a1 - agent
-    e1 e2 e3 e4 e5 e6 e7 - sol
-    c1 - cible
+    e1 e2 e3 e4 e5 e6 e7 c1 - sol
     b1 - boite
 )
 (:init  (aVoisinDroit e1 e2)
@@ -14,6 +13,7 @@
         (aVoisinHaut c1 e3)
         (aVoisinHaut e4 e2)
         (aVoisinHaut e3 e1)
+        (estDestination c1)
         (estSur a1 e7)
         (estSur b1 e3)
         (estLibre e1)

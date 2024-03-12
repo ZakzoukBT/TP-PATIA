@@ -9,7 +9,7 @@ import org.json.simple.parser.*;
 public class Parser {
     //Mettre le chemin relatif vers le fichier JSON
     private String file;
-    private String PDDLfile = "./src/pddlSokoban/problemPDLL.pddl";
+    private String PDDLfile = "./src/pddlSokoban/problemPDDL.pddl";
 
     public void setJsonFile(String fileName){
         file = fileName;
@@ -37,7 +37,7 @@ public class Parser {
     }
     
     public HashMap<Integer[], Character> getObjectCoordinates() throws IOException, ParseException {
-        // s = sol, a = agent, b = boite, c = cible
+        // s = sol, a = agent, b = boite, c = cible, d = boite sur cible, e = agent sur cible
         //Faire plutot une hashmap avec comme clé le nom de l'objet comme ça on garde la trace de sur quoi est une boite ou un agent (sol, storage place, ...)
         HashMap<Integer[], Character> result = new HashMap<>();
         String[] gameBoard = getGameBoard();
@@ -52,9 +52,9 @@ public class Parser {
                 else if(gameBoard[i].charAt(j) == '$')
                     result.put(new Integer[]{i,j}, 'b');
                 else if(gameBoard[i].charAt(j) == '*')
-                    result.put(new Integer[]{i,j}, 'b');
+                    result.put(new Integer[]{i,j}, 'd');
                 else if(gameBoard[i].charAt(j) == '+')
-                    result.put(new Integer[]{i,j}, 'a');
+                    result.put(new Integer[]{i,j}, 'e');
             }
         }
         return result;
@@ -80,24 +80,31 @@ public class Parser {
                 cmp.put("Boite", cmp.get("Boite") + 1);
                 cmp.put("Sol", cmp.get("Sol") + 1);
             }
+            else if(objects.get(tabI) == 'd'){
+                cmp.put("Boite", cmp.get("Boite") + 1);
+                cmp.put("Cible", cmp.get("Cible") + 1);
+            }
+            else if(objects.get(tabI) == 'e'){
+                cmp.put("Agent", cmp.get("Agent") + 1);
+                cmp.put("Cible", cmp.get("Cible") + 1);
+            }
         }
         for(int i=1; i<=cmp.get("Sol"); i++)
             res += "s"+i+" ";
+        for(int i=1; i<=cmp.get("Cible"); i++)
+            res += "c"+i+" ";
         res += "- sol\n";
         for(int i=1; i<=cmp.get("Agent"); i++)
             res += "a"+i+" ";
         res += "- agent\n";
-        for(int i=1; i<=cmp.get("Cible"); i++)
-            res += "c"+i+" ";
-        res += "- cible\n";
         for(int i=1; i<=cmp.get("Boite"); i++)
             res += "b"+i+" ";
-        res += "- boite)\n)\n";
+        res += "- boite)\n";
         return res;
     }
 
     public String[][] localizeObjects(HashMap<Integer[], Character> objects, int nbLignes, int nbColonnes) throws IOException, ParseException {
-        // s = sol, a = agent, b = boite, c = cible
+        // a = agent, b = boite, c = cible, s = sol
         String [][] result = new String[nbLignes][nbColonnes];
         Iterator<Map.Entry<Integer[], Character>> iterator = objects.entrySet().iterator();
         int[] nbObjects = new int[] {0, 0, 0, 0};
@@ -121,6 +128,16 @@ public class Parser {
                 nbObjects[2]++;
                 result[entry.getKey()[0]][entry.getKey()[1]] = "c"+nbObjects[2];
             }
+            else if(entry.getValue() == 'd'){
+                nbObjects[1]++;
+                nbObjects[2]++;
+                result[entry.getKey()[0]][entry.getKey()[1]] = "b"+nbObjects[1]+";"+"c"+nbObjects[2];
+            }
+            else if(entry.getValue() == 'e'){
+                nbObjects[0]++;
+                nbObjects[2]++;
+                result[entry.getKey()[0]][entry.getKey()[1]] = "a"+nbObjects[0]+";"+"c"+nbObjects[2];
+            }
         }
         return result;
     }
@@ -133,8 +150,14 @@ public class Parser {
                 if (objects[i][j] == null) {} 
                 else if(objects[i][j].contains(";")){
                     String[] o = objects[i][j].split(";");
-                    res += "(estSur " + o[0] + " " + o[1] + ")\n"; 
+                    res += "(estSur " + o[0] + " " + o[1] + ")\n";
+                    if (o[1].contains("c"))
+                        res += "(estDestination " + o[1] + ")\n";
+                    if(o[0].contains("b") && o[1].contains("c"))
+                        res += "(cibleAtteinte " + o[1] + ")\n";
                 } else {
+                    if (objects[i][j].contains("c"))
+                        res += "(estDestination " + objects[i][j] + ")\n";
                     res += "(estLibre " + objects[i][j] + ")\n";
                 }
                 // Recherche des emplacements voisins
@@ -164,8 +187,13 @@ public class Parser {
         for(int i=0; i<objects.length; i++){
             for(int j=0; j < objects[i].length; j++){
                 if(objects[i][j] != null) {
-                    if(objects[i][j].contains("c")){
-                        res += "(cibleAtteinte " + objects[i][j] + ")\n";
+                    if (objects[i][j].contains("c")) {
+                        String[] o = objects[i][j].split(";");
+                        if (o.length > 1) {
+                            res += "(cibleAtteinte " + o[1] + ")\n";
+                        } else {
+                            res += "(cibleAtteinte " + o[0] + ")\n";
+                        }
                     }
                 }
             }
@@ -180,11 +208,13 @@ public class Parser {
         HashMap<Integer[], Character> result = getObjectCoordinates();
         String res = "";
         String[][] objects = localizeObjects(result, getGameBoard().length, getGameBoard()[1].length());
+        res += writeObjects(result);
         res += writeInitConditions(objects);
         res += writeGoalConditions(objects);
         fw.write(res);
         fw.close();
     }
+
 
     public static void main(String[] args) {
         Parser p = new Parser();
@@ -194,7 +224,15 @@ public class Parser {
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
-        
+        // HashMap<Integer[], Character> result = p.getObjectCoordinates();
+        // String[][] objects = p.localizeObjects(result, p.getGameBoard().length, p.getGameBoard()[1].length());
+        // System.out.print("| ");
+        // for(int i=0; i< objects.length; i++){
+        //     for(int j=0; j<objects[i].length; j++){
+        //         System.out.print(objects[i][j] + "  ");
+        //     } 
+        //     System.out.print("\n");
+        // }
         //String solution = "DUU";
         //for (char c : solution.toCharArray()) System.out.println(c);
     }
