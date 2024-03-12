@@ -7,25 +7,19 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.*;
 
 import fr.uga.pddl4j.heuristics.state.StateHeuristic;
-import fr.uga.pddl4j.parser.DefaultParsedProblem;
-import fr.uga.pddl4j.parser.ErrorManager;
-import fr.uga.pddl4j.parser.Message;
 import fr.uga.pddl4j.planners.InvalidConfigurationException;
 import fr.uga.pddl4j.planners.LogLevel;
 import fr.uga.pddl4j.planners.Planner;
 import fr.uga.pddl4j.planners.PlannerConfiguration;
 import fr.uga.pddl4j.planners.statespace.FF;
-import fr.uga.pddl4j.planners.statespace.HSP;
-import fr.uga.pddl4j.problem.DefaultProblem;
-import fr.uga.pddl4j.problem.Problem;
 import fr.uga.pddl4j.problem.operator.Action;
 import fr.uga.pddl4j.plan.*;
 
 public class Parser {
     //Mettre le chemin relatif vers le fichier JSON
     private String file;
-    private String PDDLdomain = "./sokoban/src/pddlSokoban/domain.pddl";
-    private String PDDLfile = "./sokoban/src/pddlSokoban/problemPDDL.pddl";
+    private String PDDLdomain = "./src/pddlSokoban/domain.pddl";
+    private String PDDLfile = "./src/pddlSokoban/problemPDDL.pddl";
 
     public void setJsonFile(String fileName){
         file = fileName;
@@ -162,22 +156,21 @@ public class Parser {
     }
 
     public String writeInitConditions(String[][] objects){
-        String res ="\n(:init ";
+        String res ="\n(:init \n";
         for(int i=0; i<objects.length; i++){
             for (int j = 0; j < objects[i].length; j++) {
                 // Emplacement sur la map des différentes entités
                 if (objects[i][j] == null) {
                 } else if (objects[i][j].contains(";")) {
                     String[] o = objects[i][j].split(";");
-                    res += "(estSur " + o[0] + " " + o[1] + ")\n";
+                    res += "    (estSur " + o[0] + " " + o[1] + ")\n";
                     if (o[1].contains("c"))
-                        res += "(estDestination " + o[1] + ")\n";
-                    if (o[0].contains("b") && o[1].contains("c"))
-                        res += "(cibleAtteinte " + o[1] + ")\n";
+                        res += "    (estDestination " + o[1] + ")\n";
                 } else {
-                    if (objects[i][j].contains("c"))
-                        res += "(estDestination " + objects[i][j] + ")\n";
-                    res += "(estLibre " + objects[i][j] + ")\n";
+                    if (objects[i][j].contains("c")) {
+                        res += "    (estDestination " + objects[i][j] + ")\n";
+                    }
+                    res += "    (estLibre " + objects[i][j] + ")\n";
                 }
                 // Recherche des emplacements voisins
                 // if(objects[i][j] != null){
@@ -201,12 +194,14 @@ public class Parser {
                     if (objects[i][j].contains(";")) {
                         currentObject = objects[i][j].split(";")[1];
                     }
+                    res += "    (notCibleAtteinte " + currentObject + ")\n";
                     if(j-1 >= 0 && objects[i][j-1] != null){
                         String objectBefore = objects[i][j - 1];
                         if (objectBefore.contains(";")) {
                            objectBefore = objectBefore.split(";")[1];
                         }
-                        res += "(aVoisinDroit " + objectBefore + " " + currentObject + ")\n";
+                        res += "    (aVoisinDroit " + objectBefore + " " + currentObject + ")\n";
+                        res += "    (aVoisinGauche " + currentObject + " " + objectBefore + ")\n";
                     }
                     
                     if(i-1 >= 0 && objects[i-1][j] != null){
@@ -214,7 +209,8 @@ public class Parser {
                         if (objectOnTop.contains(";")) {
                             objectOnTop = objectOnTop.split(";")[1];
                         }
-                        res += "(aVoisinHaut " + currentObject + " " + objectOnTop + ")\n";
+                        res += "    (aVoisinHaut " + currentObject + " " + objectOnTop + ")\n";
+                        res += "    (aVoisinBas " + objectOnTop + " " + currentObject + ")\n";
                     }                    
                 }
             }
@@ -224,16 +220,16 @@ public class Parser {
     }
 
     public String writeGoalConditions(String[][] objects){
-        String res = "\n(:goal (and ";
+        String res = "\n(:goal (and \n";
         for(int i=0; i<objects.length; i++){
             for(int j=0; j < objects[i].length; j++){
                 if(objects[i][j] != null) {
                     if (objects[i][j].contains("c")) {
                         String[] o = objects[i][j].split(";");
                         if (o.length > 1) {
-                            res += "(cibleAtteinte " + o[1] + ")\n";
+                            res += "    (cibleAtteinte " + o[1] + ")\n";
                         } else {
-                            res += "(cibleAtteinte " + o[0] + ")\n";
+                            res += "    (cibleAtteinte " + o[0] + ")\n";
                         }
                     }
                 }
@@ -263,7 +259,7 @@ public class Parser {
         config.setProperty(FF.DOMAIN_SETTING, PDDLdomain);
         // Sets the problem to solve
         //TODO Modifier le nom du problem PDDL
-        config.setProperty(FF.PROBLEM_SETTING, "./sokoban/src/pddlSokoban/problem.pddl");
+        config.setProperty(FF.PROBLEM_SETTING, "./src/pddlSokoban/problem.pddl");
         // Sets the timeout allocated to the search.
         config.setProperty(FF.TIME_OUT_SETTING, 1000);
         // Sets the log level
@@ -330,7 +326,7 @@ public class Parser {
 
     public static void main(String[] args) throws Exception {
         Parser p = new Parser();
-        p.setJsonFile("./sokoban/config/test2.json");
+        p.setJsonFile("./config/test1.json");
     
         p.createFile();
         FileWriter fw = new FileWriter(p.PDDLfile, true);
