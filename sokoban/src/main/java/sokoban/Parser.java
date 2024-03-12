@@ -6,10 +6,26 @@ import java.util.*;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.*;
 
+import fr.uga.pddl4j.heuristics.state.StateHeuristic;
+import fr.uga.pddl4j.parser.DefaultParsedProblem;
+import fr.uga.pddl4j.parser.ErrorManager;
+import fr.uga.pddl4j.parser.Message;
+import fr.uga.pddl4j.planners.InvalidConfigurationException;
+import fr.uga.pddl4j.planners.LogLevel;
+import fr.uga.pddl4j.planners.Planner;
+import fr.uga.pddl4j.planners.PlannerConfiguration;
+import fr.uga.pddl4j.planners.statespace.FF;
+import fr.uga.pddl4j.planners.statespace.HSP;
+import fr.uga.pddl4j.problem.DefaultProblem;
+import fr.uga.pddl4j.problem.Problem;
+import fr.uga.pddl4j.problem.operator.Action;
+import fr.uga.pddl4j.plan.*;
+
 public class Parser {
     //Mettre le chemin relatif vers le fichier JSON
     private String file;
-    private String PDDLfile = "./src/pddlSokoban/problemPDDL.pddl";
+    private String PDDLdomain = "./sokoban/src/pddlSokoban/domain.pddl";
+    private String PDDLfile = "./sokoban/src/pddlSokoban/problemPDDL.pddl";
 
     public void setJsonFile(String fileName){
         file = fileName;
@@ -29,34 +45,37 @@ public class Parser {
     }
 
     //Lecture du fichier JSON pour obtenir le plateau de jeu initial
-    public String[] getGameBoard() throws IOException, ParseException {
+    public String[] getGameBoard() throws Exception {
         Object o = new JSONParser().parse(new FileReader(file));
         JSONObject jsonObj = (JSONObject) o;
         String problem = (String) jsonObj.get("testIn");
-        return problem.split("\n");
+        String[] result = problem.split("\n");
+        showJsonFile(result);
+        return result;
     }
     
-    public HashMap<Integer[], Character> getObjectCoordinates() throws IOException, ParseException {
+    public HashMap<Integer[], Character> getObjectCoordinates(String[] gameboard) throws Exception {
         // s = sol, a = agent, b = boite, c = cible, d = boite sur cible, e = agent sur cible
         //Faire plutot une hashmap avec comme clé le nom de l'objet comme ça on garde la trace de sur quoi est une boite ou un agent (sol, storage place, ...)
         HashMap<Integer[], Character> result = new HashMap<>();
-        String[] gameBoard = getGameBoard();
-        for(int i=0; i<gameBoard.length; i++){
-            for(int j=0; j<gameBoard[i].length(); j++){
-                if(gameBoard[i].charAt(j) == ' ')
-                    result.put(new Integer[]{i,j}, 's');
-                else if(gameBoard[i].charAt(j) == '@')
-                    result.put(new Integer[]{i,j}, 'a');
-                else if(gameBoard[i].charAt(j) == '.')
-                    result.put(new Integer[]{i,j}, 'c');
-                else if(gameBoard[i].charAt(j) == '$')
-                    result.put(new Integer[]{i,j}, 'b');
-                else if(gameBoard[i].charAt(j) == '*')
-                    result.put(new Integer[]{i,j}, 'd');
-                else if(gameBoard[i].charAt(j) == '+')
-                    result.put(new Integer[]{i,j}, 'e');
+        String[] gameBoard = gameboard;
+        for (int i = 0; i < gameBoard.length; i++) {
+            for (int j = 0; j < gameBoard[i].length(); j++) {
+                if (gameBoard[i].charAt(j) == ' ')
+                    result.put(new Integer[] { i, j }, 's');
+                else if (gameBoard[i].charAt(j) == '@')
+                    result.put(new Integer[] { i, j }, 'a');
+                else if (gameBoard[i].charAt(j) == '.')
+                    result.put(new Integer[] { i, j }, 'c');
+                else if (gameBoard[i].charAt(j) == '$')
+                    result.put(new Integer[] { i, j }, 'b');
+                else if (gameBoard[i].charAt(j) == '*')
+                    result.put(new Integer[] { i, j }, 'd');
+                else if (gameBoard[i].charAt(j) == '+')
+                    result.put(new Integer[] { i, j }, 'e');
             }
         }
+        showCoordinates(result);
         return result;
     }
 
@@ -147,13 +166,13 @@ public class Parser {
         for(int i=0; i<objects.length; i++){
             for (int j = 0; j < objects[i].length; j++) {
                 // Emplacement sur la map des différentes entités
-                if (objects[i][j] == null) {} 
-                else if(objects[i][j].contains(";")){
+                if (objects[i][j] == null) {
+                } else if (objects[i][j].contains(";")) {
                     String[] o = objects[i][j].split(";");
                     res += "(estSur " + o[0] + " " + o[1] + ")\n";
                     if (o[1].contains("c"))
                         res += "(estDestination " + o[1] + ")\n";
-                    if(o[0].contains("b") && o[1].contains("c"))
+                    if (o[0].contains("b") && o[1].contains("c"))
                         res += "(cibleAtteinte " + o[1] + ")\n";
                 } else {
                     if (objects[i][j].contains("c"))
@@ -161,21 +180,43 @@ public class Parser {
                     res += "(estLibre " + objects[i][j] + ")\n";
                 }
                 // Recherche des emplacements voisins
-                if(objects[i][j] != null){
-                    String objCourant = objects[i][j].contains(";")?objects[i][j].split(";")[1]:objects[i][j];
-                    if((i-1) >= 0 && objects[i-1][j] != null){
-                        if(objects[i-1][j].contains(";"))
-                            res += "(aVoisinHaut " + objCourant + " " + objects[i-1][j].split(";")[1] + ")\n";
-                        else
-                            res += "(aVoisinHaut " + objCourant + " " + objects[i-1][j] + ")\n";
-                    } else if ((j-1) >= 0 && objects[i][j-1] != null) {
-                        String[] o = objects[i][j-1].split(";");
-                        if(o.length > 1){
-                            res += "(aVoisinDroit " + objCourant + " " + o[1] + ")\n";
-                        } else {
-                            res += "(aVoisinDroit " + objCourant + " " + o[0] + ")\n";}
+                // if(objects[i][j] != null){
+                //     String objCourant = objects[i][j].contains(";")?objects[i][j].split(";")[1]:objects[i][j];
+                //     if ((i-1) >= 0 && objects[i-1][j] != null) {
+                //         if (objects[i - 1][j].contains(";"))
+                //             res += "(aVoisinDroit " + objCourant + " " + objects[i - 1][j].split(";")[1] + ")\n";
+                //         else
+                //             res += "(aVoisinDroit " + objCourant + " " + objects[i - 1][j] + ")\n";
+                //     }
+                //     if ((j-1) >= 0 && objects[i][j-1] != null) {
+                //         String[] o = objects[i][j-1].split(";");
+                //         if(o.length > 1){
+                //             res += "(aVoisinHaut " + objCourant + " " + o[1] + ")\n";
+                //         } else {
+                //             res += "(aVoisinHaut " + objCourant + " " + o[0] + ")\n";}
+                //     }
+                // } 
+                if (objects[i][j] != null) {
+                    String currentObject = objects[i][j];
+                    if (objects[i][j].contains(";")) {
+                        currentObject = objects[i][j].split(";")[1];
                     }
-                } 
+                    if(j-1 >= 0 && objects[i][j-1] != null){
+                        String objectBefore = objects[i][j - 1];
+                        if (objectBefore.contains(";")) {
+                           objectBefore = objectBefore.split(";")[1];
+                        }
+                        res += "(aVoisinDroit " + objectBefore + " " + currentObject + ")\n";
+                    }
+                    
+                    if(i-1 >= 0 && objects[i-1][j] != null){
+                        String objectOnTop = objects[i-1][j];
+                        if (objectOnTop.contains(";")) {
+                            objectOnTop = objectOnTop.split(";")[1];
+                        }
+                        res += "(aVoisinHaut " + currentObject + " " + objectOnTop + ")\n";
+                    }                    
+                }
             }
         }
         res += ")";
@@ -202,10 +243,10 @@ public class Parser {
         return res;
     }
 
-    public void parseProblemJSONToPDDL() throws IOException, ParseException {
+    public void parseProblemJSONToPDDL() throws Exception {
         createFile();
         FileWriter fw = new FileWriter(PDDLfile, true);
-        HashMap<Integer[], Character> result = getObjectCoordinates();
+        HashMap<Integer[], Character> result = getObjectCoordinates(getGameBoard());
         String res = "";
         String[][] objects = localizeObjects(result, getGameBoard().length, getGameBoard()[1].length());
         res += writeObjects(result);
@@ -215,26 +256,106 @@ public class Parser {
         fw.close();
     }
 
+    public Plan getPDDLResult(){
+        // Gets the default configuration from the planner
+        PlannerConfiguration config = FF.getDefaultConfiguration();
+        // Sets the domain of the problem to solve
+        config.setProperty(FF.DOMAIN_SETTING, PDDLdomain);
+        // Sets the problem to solve
+        //TODO Modifier le nom du problem PDDL
+        config.setProperty(FF.PROBLEM_SETTING, "./sokoban/src/pddlSokoban/problem.pddl");
+        // Sets the timeout allocated to the search.
+        config.setProperty(FF.TIME_OUT_SETTING, 1000);
+        // Sets the log level
+        config.setProperty(FF.LOG_LEVEL_SETTING, LogLevel.INFO);
+        // Sets the heuristic used to search
+        config.setProperty(FF.HEURISTIC_SETTING, StateHeuristic.Name.MAX);
+        // Sets the weight of the heuristic
+        config.setProperty(FF.WEIGHT_HEURISTIC_SETTING, 1.2);
 
-    public static void main(String[] args) {
-        Parser p = new Parser();
-        p.setJsonFile("./config/test1.json");
-        try{
-            p.parseProblemJSONToPDDL();
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
+        // Creates an instance of the HSP planner with the specified configuration
+        Planner planner = Planner.getInstance(Planner.Name.FF, config);
+
+        // Runs the planner and print the solution
+        Plan result = new SequentialPlan();
+        try {
+            result = planner.solve();
+        } catch (InvalidConfigurationException e) {
+            e.printStackTrace();
         }
-        // HashMap<Integer[], Character> result = p.getObjectCoordinates();
-        // String[][] objects = p.localizeObjects(result, p.getGameBoard().length, p.getGameBoard()[1].length());
-        // System.out.print("| ");
-        // for(int i=0; i< objects.length; i++){
-        //     for(int j=0; j<objects[i].length; j++){
-        //         System.out.print(objects[i][j] + "  ");
-        //     } 
-        //     System.out.print("\n");
-        // }
-        //String solution = "DUU";
-        //for (char c : solution.toCharArray()) System.out.println(c);
+        return result;
+    }
+
+    public String getStringSolution(Plan p){
+        String res= "";
+        for (Action a : p.actions()) {
+            if(a.getName().contains("haut"))
+                res += "U";
+            else if(a.getName().contains("bas"))
+                res += "D";
+            else if(a.getName().contains("gauche"))
+                res += "L";
+            else if(a.getName().contains("droit"))
+                res += "R";
+        }
+        return res;
+    }
+
+    public void showJsonFile(String[] gameboard) throws Exception {
+        ArrayList<String> result = new ArrayList<String>(Arrays.asList(gameboard));
+        for (String s : result) {
+            System.out.println("|" + s + "|");
+        }
+    }
+
+    public void showCoordinates(HashMap<Integer[], Character> objectCoordinates) throws Exception {
+        StringBuilder stringBuilder = new StringBuilder("{");
+
+        for (Map.Entry<Integer[], Character> entry : objectCoordinates.entrySet()) {
+            stringBuilder.append(Arrays.toString(entry.getKey()))
+                         .append(":")
+                         .append("\"").append(entry.getValue()).append("\", ");
+        }
+
+        // Remove the trailing comma and space
+        if (stringBuilder.length() > 1) {
+            stringBuilder.setLength(stringBuilder.length() - 2);
+        }
+
+        stringBuilder.append("}");
+        System.out.println(stringBuilder);
+    }
+    
+    
+
+    public static void main(String[] args) throws Exception {
+        Parser p = new Parser();
+        p.setJsonFile("./sokoban/config/test2.json");
+    
+        p.createFile();
+        FileWriter fw = new FileWriter(p.PDDLfile, true);
+        HashMap<Integer[], Character> result = p.getObjectCoordinates(p.getGameBoard());
+        String res = "";
+        String[][] objects = p.localizeObjects(result, p.getGameBoard().length, p.getGameBoard()[1].length());
+        //Affichage de objects !!
+        for(int i=0; i< objects.length; i++){
+            for(int j=0; j<objects[i].length; j++){
+                System.out.print(objects[i][j] + "  ");
+            } 
+            System.out.print("\n");
+        }
+        //Fin affichage
+        res += p.writeObjects(result);
+        res += p.writeInitConditions(objects);
+        res += p.writeGoalConditions(objects);
+        fw.write(res);
+        fw.close();
+        //p.parseProblemJSONToPDDL();
+
+        // Plan res = p.getPDDLResult();
+        // System.out.println(p.getStringSolution(res));
+        // String solution = "DUU";
+        // for (char c : solution.toCharArray()) System.out.println(c);
     }
     
 }
