@@ -1,7 +1,7 @@
 For pddl4j:
 java -cp pddl4j/build/libs/pddl4j-4.0.0.jar fr.uga.pddl4j.planners.statespace.FF \
-   pddl4j/src/test/resources/benchmarks/pddl/ipc2000/logistics/strips-typed/domain.pddl \
-   pddl4j/src/test/resources/benchmarks/pddl/ipc2000/logistics/strips-typed/p01.pddl
+   pddl4j/src/ExerciceX/domainX.pddl \
+   pddl4j/src/ExerciceX/problemX.pddl \
 
 For sokoban:
 java -cp pddl4j/build/libs/pddl4j-4.0.0.jar fr.uga.pddl4j.planners.statespace.FF \
