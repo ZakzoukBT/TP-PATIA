@@ -3,7 +3,10 @@
 bin
 out
 lib
-build/
+build/classes/
+build/generated/
+build/resources/
+build/tmp/
 *.class
 
 # Generated files #
