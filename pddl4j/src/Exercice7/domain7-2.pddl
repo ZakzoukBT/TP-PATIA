@@ -10,14 +10,8 @@
     (lit ?c - caractere)
     (aDroite ?c1 - caractere ?c2 - caractere)
     (estCarac ?c - caractere ?s - symbole)
-    ; (estEtatZero ?q - etat)
     (etatCourant ?q - etat)
     (estEtatFinal ?q - etat)
-    (termine)
-    ; (deplacementDroite ?d - deplacement)
-    ; (deplacementGauche ?d - deplacement)
-    ; (etatsDifferents ?q1 - etat ?q2 - etat)
-    ; (caracDifferents ?c1 - caractere ?c2 - caractere)
 
     (changeEtatEcritCaracDeplaceGauche ?t - transition ?qi - etat ?qf - etat ?s1 - symbole ?s2 - symbole)
     (changeEtatEcritCaracDeplaceDroite ?t - transition ?qi - etat ?qf - etat ?s1 - symbole ?s2 - symbole)
@@ -47,7 +41,6 @@
                  (lit ?c2)
                  (not (estCarac ?c1 ?s1))
                  (estCarac ?c1 ?s2)
-                 (not (termine))
     )
 )
 (:action changerEtatEcrireCaracDeplacerDroite
@@ -63,7 +56,6 @@
                  (lit ?c2)
                  (not (estCarac ?c1 ?s1))
                  (estCarac ?c1 ?s2)
-                 (not (termine))
     )
 )
 
@@ -77,7 +69,6 @@
                  (etatCourant ?qf)
                  (not (estCarac ?c1 ?s1))
                  (estCarac ?c1 ?s2)
-                 (not (termine))
     )
 )
 
@@ -92,7 +83,6 @@
                  (etatCourant ?qf)
                  (not (lit ?c1))
                  (lit ?c2)
-                 (not (termine))   
     )
 )
 
@@ -107,7 +97,6 @@
                  (etatCourant ?qf)
                  (not (lit ?c1))
                  (lit ?c2)
-                 (not (termine))   
     )
 )
 
@@ -119,7 +108,6 @@
                        (estCarac ?c1 ?s1))
     :effect (and (not (etatCourant ?qi))
                  (etatCourant ?qf) 
-                 (not (termine)) 
     )
 )
 
@@ -134,7 +122,6 @@
                  (lit ?c2)
                  (not (estCarac ?c1 ?s1))
                  (estCarac ?c1 ?s2)
-                 (not (termine))
     )
 )
 
@@ -149,7 +136,6 @@
                  (lit ?c2)
                  (not (estCarac ?c1 ?s1))
                  (estCarac ?c1 ?s2)
-                 (not (termine))
     )
 )
 
@@ -161,7 +147,6 @@
                        (estCarac ?c1 ?s1))
     :effect (and (not (estCarac ?c1 ?s1))
                  (estCarac ?c1 ?s2)
-                 (not (termine))
     )
 )
 
@@ -174,7 +159,6 @@
                        (estCarac ?c1 ?s1))
     :effect (and (not (lit ?c1))
                  (lit ?c2)
-                 (not (termine))
     )
 )
 
@@ -187,15 +171,6 @@
                        (estCarac ?c1 ?s1))
     :effect (and (not (lit ?c1))
                  (lit ?c2)
-                 (not (termine))
     )
 )
-
-(:action atteintEtatFinal
-    :parameters (?q - etat)
-    :precondition (and (estEtatFinal ?q)
-                       (etatCourant ?q))
-    :effect (and (termine)
-    ))
-
 )
