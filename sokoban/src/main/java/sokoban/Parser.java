@@ -365,14 +365,21 @@ public class Parser {
 
 
     public static void main(String[] args) throws Exception {
-        String JSONfile = "./sokoban/config/test25.json";
-        String PDDLdomain = "./sokoban/src/pddlSokoban/domain.pddl";
-        String PDDLfile = "./sokoban/src/pddlSokoban/problemPDDL.pddl";
+        String JSONfile = "./config/test1.json";
+        String PDDLdomain = "./src/pddlSokoban/domain.pddl";
+        String PDDLfile = "./src/pddlSokoban/problemPDDL.pddl";
         Parser p = new Parser(PDDLdomain, PDDLfile, JSONfile);
         p.parseProblemJSONToPDDL();
-
         Plan res = p.getPDDLResult();
-        System.out.println(p.getStringSolution(res));
+        String solution = p.getStringSolution(res);
+        //for (char c : solution.toCharArray()) System.out.println(c);
+        try {
+            FileWriter fw = new FileWriter(new File("./src/pddlSokoban/Resultat.txt"));
+            for (char c : solution.toCharArray()) fw.write(""+c);
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     
 }
