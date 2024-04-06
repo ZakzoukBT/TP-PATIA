@@ -365,7 +365,10 @@ public class Parser {
 
 
     public static void main(String[] args) throws Exception {
-        String JSONfile = "./config/test1.json";
+        if(args.length < 1){
+            System.err.println("Il manque un argument ! Donnez le nom du fichier json (avec son extension .json) correspondant au niveau à tester.");
+        }
+        String JSONfile = "./config/" + args[0];
         String PDDLdomain = "./src/pddlSokoban/domain.pddl";
         String PDDLfile = "./src/pddlSokoban/problemPDDL.pddl";
         Parser p = new Parser(PDDLdomain, PDDLfile, JSONfile);
