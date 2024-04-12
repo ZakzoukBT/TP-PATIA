@@ -1,0 +1,1596 @@
+WARNING: sun.reflect.Reflection.getCallerClass is not supported. This will impact performance.
+
+parsing domain file "../pddl4j/src/Exercice5/domain5.pddl" done successfully
+parsing problem file "../pddl4j/src/Exercice5/problem5.pddl" done successfully
+
+Types declared:
+0: object: 0 1 2 3 4 5 6 7 8 9 10 11
+1: noeud: 0 1 2 3 4
+2: agent: 5 6
+3: arc: 7 8 9 10 11
+4: object:
+
+Constants declared in the problem:
+0: n1
+1: n2
+2: n3
+3: n4
+4: n5
+5: a1
+6: a2
+7: arc1
+8: arc2
+9: arc3
+10: arc4
+11: arc5
+
+Predicates declared:
+0: estsur: agent noeud
+1: liaison: arc noeud noeud
+2: estdecontamine: arc
+3: estcontamine: arc
+4: sontdifferents: agent agent
+
+Actions declared:
+
+Action sedeplace
+Instantiations:
+?X0 - agent : ? 
+?X1 - noeud : ? 
+?X2 - arc : ? 
+?X3 - noeud : ? 
+Preconditions:
+(and (liaison ?X2 ?X1 ?X3)
+  (estsur ?X0 ?X1))
+Effects:
+(and (not (estsur ?X0 ?X1))
+  (estsur ?X0 ?X3))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : ? 
+?X1 - agent : ? 
+?X2 - arc : ? 
+?X3 - noeud : ? 
+?X4 - noeud : ? 
+Preconditions:
+(and (liaison ?X2 ?X3 ?X4)
+  (liaison ?X2 ?X4 ?X3)
+  (estsur ?X0 ?X3)
+  (estsur ?X1 ?X3)
+  (sontdifferents ?X0 ?X1)
+  (estcontamine ?X2))
+Effects:
+(and (not (estcontamine ?X2))
+  (estdecontamine ?X2)
+  (not (estsur ?X0 ?X3))
+  (estsur ?X0 ?X4))
+
+Initial state declared :
+(and
+ (liaison arc1 n1 n2)
+ (liaison arc1 n2 n1)
+ (liaison arc2 n2 n3)
+ (liaison arc2 n3 n2)
+ (liaison arc3 n2 n4)
+ (liaison arc3 n4 n2)
+ (liaison arc4 n2 n5)
+ (liaison arc4 n5 n2)
+ (liaison arc5 n4 n5)
+ (liaison arc5 n5 n4)
+ (estsur a1 n1)
+ (estsur a2 n1)
+ (sontdifferents a1 a2)
+ (estcontamine arc1)
+ (estcontamine arc2)
+ (estcontamine arc3)
+ (estcontamine arc4)
+ (estcontamine arc5))
+
+Goal declared:
+(and (estdecontamine arc1)
+  (estdecontamine arc2)
+  (estdecontamine arc3)
+  (estdecontamine arc4)
+  (estdecontamine arc5))
+
+Inertia detected:
+0: estsur : FLUENT
+1: liaison : INERTIA
+2: estdecontamine : NEGATIVE
+3: estcontamine : POSITIVE
+4: sontdifferents : INERTIA
+
+Actions instantiated:
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n1 
+?X2 - arc : arc1 
+?X3 - noeud : n2 
+Preconditions:
+(estsur a1 n1)
+Effects:
+(and (not (estsur a1 n1))
+  (estsur a1 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n2 
+?X2 - arc : arc1 
+?X3 - noeud : n1 
+Preconditions:
+(estsur a1 n2)
+Effects:
+(and (not (estsur a1 n2))
+  (estsur a1 n1))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n2 
+?X2 - arc : arc2 
+?X3 - noeud : n3 
+Preconditions:
+(estsur a1 n2)
+Effects:
+(and (not (estsur a1 n2))
+  (estsur a1 n3))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n2 
+?X2 - arc : arc3 
+?X3 - noeud : n4 
+Preconditions:
+(estsur a1 n2)
+Effects:
+(and (not (estsur a1 n2))
+  (estsur a1 n4))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n2 
+?X2 - arc : arc4 
+?X3 - noeud : n5 
+Preconditions:
+(estsur a1 n2)
+Effects:
+(and (not (estsur a1 n2))
+  (estsur a1 n5))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n3 
+?X2 - arc : arc2 
+?X3 - noeud : n2 
+Preconditions:
+(estsur a1 n3)
+Effects:
+(and (not (estsur a1 n3))
+  (estsur a1 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n4 
+?X2 - arc : arc3 
+?X3 - noeud : n2 
+Preconditions:
+(estsur a1 n4)
+Effects:
+(and (not (estsur a1 n4))
+  (estsur a1 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n4 
+?X2 - arc : arc5 
+?X3 - noeud : n5 
+Preconditions:
+(estsur a1 n4)
+Effects:
+(and (not (estsur a1 n4))
+  (estsur a1 n5))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n5 
+?X2 - arc : arc4 
+?X3 - noeud : n2 
+Preconditions:
+(estsur a1 n5)
+Effects:
+(and (not (estsur a1 n5))
+  (estsur a1 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n5 
+?X2 - arc : arc5 
+?X3 - noeud : n4 
+Preconditions:
+(estsur a1 n5)
+Effects:
+(and (not (estsur a1 n5))
+  (estsur a1 n4))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n1 
+?X2 - arc : arc1 
+?X3 - noeud : n2 
+Preconditions:
+(estsur a2 n1)
+Effects:
+(and (not (estsur a2 n1))
+  (estsur a2 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n2 
+?X2 - arc : arc1 
+?X3 - noeud : n1 
+Preconditions:
+(estsur a2 n2)
+Effects:
+(and (not (estsur a2 n2))
+  (estsur a2 n1))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n2 
+?X2 - arc : arc2 
+?X3 - noeud : n3 
+Preconditions:
+(estsur a2 n2)
+Effects:
+(and (not (estsur a2 n2))
+  (estsur a2 n3))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n2 
+?X2 - arc : arc3 
+?X3 - noeud : n4 
+Preconditions:
+(estsur a2 n2)
+Effects:
+(and (not (estsur a2 n2))
+  (estsur a2 n4))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n2 
+?X2 - arc : arc4 
+?X3 - noeud : n5 
+Preconditions:
+(estsur a2 n2)
+Effects:
+(and (not (estsur a2 n2))
+  (estsur a2 n5))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n3 
+?X2 - arc : arc2 
+?X3 - noeud : n2 
+Preconditions:
+(estsur a2 n3)
+Effects:
+(and (not (estsur a2 n3))
+  (estsur a2 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n4 
+?X2 - arc : arc3 
+?X3 - noeud : n2 
+Preconditions:
+(estsur a2 n4)
+Effects:
+(and (not (estsur a2 n4))
+  (estsur a2 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n4 
+?X2 - arc : arc5 
+?X3 - noeud : n5 
+Preconditions:
+(estsur a2 n4)
+Effects:
+(and (not (estsur a2 n4))
+  (estsur a2 n5))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n5 
+?X2 - arc : arc4 
+?X3 - noeud : n2 
+Preconditions:
+(estsur a2 n5)
+Effects:
+(and (not (estsur a2 n5))
+  (estsur a2 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n5 
+?X2 - arc : arc5 
+?X3 - noeud : n4 
+Preconditions:
+(estsur a2 n5)
+Effects:
+(and (not (estsur a2 n5))
+  (estsur a2 n4))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc1 
+?X3 - noeud : n1 
+?X4 - noeud : n2 
+Preconditions:
+(and (estsur a1 n1)
+  (estsur a2 n1)
+  (estcontamine arc1))
+Effects:
+(and (not (estcontamine arc1))
+  (estdecontamine arc1)
+  (not (estsur a1 n1))
+  (estsur a1 n2))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc1 
+?X3 - noeud : n2 
+?X4 - noeud : n1 
+Preconditions:
+(and (estsur a1 n2)
+  (estsur a2 n2)
+  (estcontamine arc1))
+Effects:
+(and (not (estcontamine arc1))
+  (estdecontamine arc1)
+  (not (estsur a1 n2))
+  (estsur a1 n1))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc2 
+?X3 - noeud : n2 
+?X4 - noeud : n3 
+Preconditions:
+(and (estsur a1 n2)
+  (estsur a2 n2)
+  (estcontamine arc2))
+Effects:
+(and (not (estcontamine arc2))
+  (estdecontamine arc2)
+  (not (estsur a1 n2))
+  (estsur a1 n3))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc2 
+?X3 - noeud : n3 
+?X4 - noeud : n2 
+Preconditions:
+(and (estsur a1 n3)
+  (estsur a2 n3)
+  (estcontamine arc2))
+Effects:
+(and (not (estcontamine arc2))
+  (estdecontamine arc2)
+  (not (estsur a1 n3))
+  (estsur a1 n2))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc3 
+?X3 - noeud : n2 
+?X4 - noeud : n4 
+Preconditions:
+(and (estsur a1 n2)
+  (estsur a2 n2)
+  (estcontamine arc3))
+Effects:
+(and (not (estcontamine arc3))
+  (estdecontamine arc3)
+  (not (estsur a1 n2))
+  (estsur a1 n4))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc3 
+?X3 - noeud : n4 
+?X4 - noeud : n2 
+Preconditions:
+(and (estsur a1 n4)
+  (estsur a2 n4)
+  (estcontamine arc3))
+Effects:
+(and (not (estcontamine arc3))
+  (estdecontamine arc3)
+  (not (estsur a1 n4))
+  (estsur a1 n2))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc4 
+?X3 - noeud : n2 
+?X4 - noeud : n5 
+Preconditions:
+(and (estsur a1 n2)
+  (estsur a2 n2)
+  (estcontamine arc4))
+Effects:
+(and (not (estcontamine arc4))
+  (estdecontamine arc4)
+  (not (estsur a1 n2))
+  (estsur a1 n5))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc4 
+?X3 - noeud : n5 
+?X4 - noeud : n2 
+Preconditions:
+(and (estsur a1 n5)
+  (estsur a2 n5)
+  (estcontamine arc4))
+Effects:
+(and (not (estcontamine arc4))
+  (estdecontamine arc4)
+  (not (estsur a1 n5))
+  (estsur a1 n2))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc5 
+?X3 - noeud : n4 
+?X4 - noeud : n5 
+Preconditions:
+(and (estsur a1 n4)
+  (estsur a2 n4)
+  (estcontamine arc5))
+Effects:
+(and (not (estcontamine arc5))
+  (estdecontamine arc5)
+  (not (estsur a1 n4))
+  (estsur a1 n5))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc5 
+?X3 - noeud : n5 
+?X4 - noeud : n4 
+Preconditions:
+(and (estsur a1 n5)
+  (estsur a2 n5)
+  (estcontamine arc5))
+Effects:
+(and (not (estcontamine arc5))
+  (estdecontamine arc5)
+  (not (estsur a1 n5))
+  (estsur a1 n4))
+
+
+Goal instantiated:
+(and (estdecontamine arc1)
+  (estdecontamine arc2)
+  (estdecontamine arc3)
+  (estdecontamine arc4)
+  (estdecontamine arc5))
+
+Ground inertia detected:
+
+0: (estsur a1 n1) : FLUENT
+1: (estsur a1 n2) : FLUENT
+2: (estsur a1 n3) : FLUENT
+3: (estsur a1 n4) : FLUENT
+4: (estsur a1 n5) : FLUENT
+5: (estsur a2 n1) : FLUENT
+6: (estsur a2 n2) : FLUENT
+7: (estsur a2 n3) : FLUENT
+8: (estsur a2 n4) : FLUENT
+9: (estsur a2 n5) : FLUENT
+10: (estcontamine arc1) : POSITIVE
+11: (estdecontamine arc1) : NEGATIVE
+12: (estcontamine arc2) : POSITIVE
+13: (estdecontamine arc2) : NEGATIVE
+14: (estcontamine arc3) : POSITIVE
+15: (estdecontamine arc3) : NEGATIVE
+16: (estcontamine arc4) : POSITIVE
+17: (estdecontamine arc4) : NEGATIVE
+18: (estcontamine arc5) : POSITIVE
+19: (estdecontamine arc5) : NEGATIVE
+
+Actions simplified base on ground inertia detected:
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n1 
+?X2 - arc : arc1 
+?X3 - noeud : n2 
+Preconditions:
+(estsur a1 n1)
+Effects:
+(and (not (estsur a1 n1))
+  (estsur a1 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n2 
+?X2 - arc : arc1 
+?X3 - noeud : n1 
+Preconditions:
+(estsur a1 n2)
+Effects:
+(and (not (estsur a1 n2))
+  (estsur a1 n1))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n2 
+?X2 - arc : arc2 
+?X3 - noeud : n3 
+Preconditions:
+(estsur a1 n2)
+Effects:
+(and (not (estsur a1 n2))
+  (estsur a1 n3))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n2 
+?X2 - arc : arc3 
+?X3 - noeud : n4 
+Preconditions:
+(estsur a1 n2)
+Effects:
+(and (not (estsur a1 n2))
+  (estsur a1 n4))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n2 
+?X2 - arc : arc4 
+?X3 - noeud : n5 
+Preconditions:
+(estsur a1 n2)
+Effects:
+(and (not (estsur a1 n2))
+  (estsur a1 n5))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n3 
+?X2 - arc : arc2 
+?X3 - noeud : n2 
+Preconditions:
+(estsur a1 n3)
+Effects:
+(and (not (estsur a1 n3))
+  (estsur a1 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n4 
+?X2 - arc : arc3 
+?X3 - noeud : n2 
+Preconditions:
+(estsur a1 n4)
+Effects:
+(and (not (estsur a1 n4))
+  (estsur a1 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n4 
+?X2 - arc : arc5 
+?X3 - noeud : n5 
+Preconditions:
+(estsur a1 n4)
+Effects:
+(and (not (estsur a1 n4))
+  (estsur a1 n5))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n5 
+?X2 - arc : arc4 
+?X3 - noeud : n2 
+Preconditions:
+(estsur a1 n5)
+Effects:
+(and (not (estsur a1 n5))
+  (estsur a1 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n5 
+?X2 - arc : arc5 
+?X3 - noeud : n4 
+Preconditions:
+(estsur a1 n5)
+Effects:
+(and (not (estsur a1 n5))
+  (estsur a1 n4))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n1 
+?X2 - arc : arc1 
+?X3 - noeud : n2 
+Preconditions:
+(estsur a2 n1)
+Effects:
+(and (not (estsur a2 n1))
+  (estsur a2 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n2 
+?X2 - arc : arc1 
+?X3 - noeud : n1 
+Preconditions:
+(estsur a2 n2)
+Effects:
+(and (not (estsur a2 n2))
+  (estsur a2 n1))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n2 
+?X2 - arc : arc2 
+?X3 - noeud : n3 
+Preconditions:
+(estsur a2 n2)
+Effects:
+(and (not (estsur a2 n2))
+  (estsur a2 n3))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n2 
+?X2 - arc : arc3 
+?X3 - noeud : n4 
+Preconditions:
+(estsur a2 n2)
+Effects:
+(and (not (estsur a2 n2))
+  (estsur a2 n4))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n2 
+?X2 - arc : arc4 
+?X3 - noeud : n5 
+Preconditions:
+(estsur a2 n2)
+Effects:
+(and (not (estsur a2 n2))
+  (estsur a2 n5))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n3 
+?X2 - arc : arc2 
+?X3 - noeud : n2 
+Preconditions:
+(estsur a2 n3)
+Effects:
+(and (not (estsur a2 n3))
+  (estsur a2 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n4 
+?X2 - arc : arc3 
+?X3 - noeud : n2 
+Preconditions:
+(estsur a2 n4)
+Effects:
+(and (not (estsur a2 n4))
+  (estsur a2 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n4 
+?X2 - arc : arc5 
+?X3 - noeud : n5 
+Preconditions:
+(estsur a2 n4)
+Effects:
+(and (not (estsur a2 n4))
+  (estsur a2 n5))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n5 
+?X2 - arc : arc4 
+?X3 - noeud : n2 
+Preconditions:
+(estsur a2 n5)
+Effects:
+(and (not (estsur a2 n5))
+  (estsur a2 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n5 
+?X2 - arc : arc5 
+?X3 - noeud : n4 
+Preconditions:
+(estsur a2 n5)
+Effects:
+(and (not (estsur a2 n5))
+  (estsur a2 n4))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc1 
+?X3 - noeud : n1 
+?X4 - noeud : n2 
+Preconditions:
+(and (estsur a1 n1)
+  (estsur a2 n1)
+  (estcontamine arc1))
+Effects:
+(and (not (estcontamine arc1))
+  (estdecontamine arc1)
+  (not (estsur a1 n1))
+  (estsur a1 n2))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc1 
+?X3 - noeud : n2 
+?X4 - noeud : n1 
+Preconditions:
+(and (estsur a1 n2)
+  (estsur a2 n2)
+  (estcontamine arc1))
+Effects:
+(and (not (estcontamine arc1))
+  (estdecontamine arc1)
+  (not (estsur a1 n2))
+  (estsur a1 n1))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc2 
+?X3 - noeud : n2 
+?X4 - noeud : n3 
+Preconditions:
+(and (estsur a1 n2)
+  (estsur a2 n2)
+  (estcontamine arc2))
+Effects:
+(and (not (estcontamine arc2))
+  (estdecontamine arc2)
+  (not (estsur a1 n2))
+  (estsur a1 n3))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc2 
+?X3 - noeud : n3 
+?X4 - noeud : n2 
+Preconditions:
+(and (estsur a1 n3)
+  (estsur a2 n3)
+  (estcontamine arc2))
+Effects:
+(and (not (estcontamine arc2))
+  (estdecontamine arc2)
+  (not (estsur a1 n3))
+  (estsur a1 n2))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc3 
+?X3 - noeud : n2 
+?X4 - noeud : n4 
+Preconditions:
+(and (estsur a1 n2)
+  (estsur a2 n2)
+  (estcontamine arc3))
+Effects:
+(and (not (estcontamine arc3))
+  (estdecontamine arc3)
+  (not (estsur a1 n2))
+  (estsur a1 n4))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc3 
+?X3 - noeud : n4 
+?X4 - noeud : n2 
+Preconditions:
+(and (estsur a1 n4)
+  (estsur a2 n4)
+  (estcontamine arc3))
+Effects:
+(and (not (estcontamine arc3))
+  (estdecontamine arc3)
+  (not (estsur a1 n4))
+  (estsur a1 n2))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc4 
+?X3 - noeud : n2 
+?X4 - noeud : n5 
+Preconditions:
+(and (estsur a1 n2)
+  (estsur a2 n2)
+  (estcontamine arc4))
+Effects:
+(and (not (estcontamine arc4))
+  (estdecontamine arc4)
+  (not (estsur a1 n2))
+  (estsur a1 n5))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc4 
+?X3 - noeud : n5 
+?X4 - noeud : n2 
+Preconditions:
+(and (estsur a1 n5)
+  (estsur a2 n5)
+  (estcontamine arc4))
+Effects:
+(and (not (estcontamine arc4))
+  (estdecontamine arc4)
+  (not (estsur a1 n5))
+  (estsur a1 n2))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc5 
+?X3 - noeud : n4 
+?X4 - noeud : n5 
+Preconditions:
+(and (estsur a1 n4)
+  (estsur a2 n4)
+  (estcontamine arc5))
+Effects:
+(and (not (estcontamine arc5))
+  (estdecontamine arc5)
+  (not (estsur a1 n4))
+  (estsur a1 n5))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc5 
+?X3 - noeud : n5 
+?X4 - noeud : n4 
+Preconditions:
+(and (estsur a1 n5)
+  (estsur a2 n5)
+  (estcontamine arc5))
+Effects:
+(and (not (estcontamine arc5))
+  (estdecontamine arc5)
+  (not (estsur a1 n5))
+  (estsur a1 n4))
+
+
+Goal simplified base on ground inertia detected:
+(and (estdecontamine arc1)
+  (estdecontamine arc2)
+  (estdecontamine arc3)
+  (estdecontamine arc4)
+  (estdecontamine arc5))
+
+Relevant fluents:
+0: (estsur a1 n1)
+1: (estsur a1 n2)
+2: (estsur a1 n3)
+3: (estsur a1 n4)
+4: (estsur a1 n5)
+5: (estsur a2 n1)
+6: (estsur a2 n2)
+7: (estsur a2 n3)
+8: (estsur a2 n4)
+9: (estsur a2 n5)
+10: (estcontamine arc1)
+11: (estdecontamine arc1)
+12: (estcontamine arc2)
+13: (estdecontamine arc2)
+14: (estcontamine arc3)
+15: (estdecontamine arc3)
+16: (estcontamine arc4)
+17: (estdecontamine arc4)
+18: (estcontamine arc5)
+19: (estdecontamine arc5)
+20: (liaison arc1 n1 n2)
+21: (liaison arc1 n2 n1)
+22: (liaison arc2 n2 n3)
+23: (liaison arc2 n3 n2)
+24: (liaison arc3 n2 n4)
+25: (liaison arc3 n4 n2)
+26: (liaison arc4 n2 n5)
+27: (liaison arc4 n5 n2)
+28: (liaison arc5 n4 n5)
+29: (liaison arc5 n5 n4)
+30: (sontdifferents a1 a2)
+
+**********************************
+* Actions                        *
+**********************************
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n1 
+?X2 - arc : arc1 
+?X3 - noeud : n2 
+Preconditions:
+(and (estsur a1 n1))
+Effects:
+(and (estsur a1 n2)
+  (not (estsur a1 n1))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n2 
+?X2 - arc : arc1 
+?X3 - noeud : n1 
+Preconditions:
+(and (estsur a1 n2))
+Effects:
+(and (estsur a1 n1)
+  (not (estsur a1 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n2 
+?X2 - arc : arc2 
+?X3 - noeud : n3 
+Preconditions:
+(and (estsur a1 n2))
+Effects:
+(and (estsur a1 n3)
+  (not (estsur a1 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n2 
+?X2 - arc : arc3 
+?X3 - noeud : n4 
+Preconditions:
+(and (estsur a1 n2))
+Effects:
+(and (estsur a1 n4)
+  (not (estsur a1 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n2 
+?X2 - arc : arc4 
+?X3 - noeud : n5 
+Preconditions:
+(and (estsur a1 n2))
+Effects:
+(and (estsur a1 n5)
+  (not (estsur a1 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n3 
+?X2 - arc : arc2 
+?X3 - noeud : n2 
+Preconditions:
+(and (estsur a1 n3))
+Effects:
+(and (estsur a1 n2)
+  (not (estsur a1 n3))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n4 
+?X2 - arc : arc3 
+?X3 - noeud : n2 
+Preconditions:
+(and (estsur a1 n4))
+Effects:
+(and (estsur a1 n2)
+  (not (estsur a1 n4))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n4 
+?X2 - arc : arc5 
+?X3 - noeud : n5 
+Preconditions:
+(and (estsur a1 n4))
+Effects:
+(and (estsur a1 n5)
+  (not (estsur a1 n4))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n5 
+?X2 - arc : arc4 
+?X3 - noeud : n2 
+Preconditions:
+(and (estsur a1 n5))
+Effects:
+(and (estsur a1 n2)
+  (not (estsur a1 n5))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a1 
+?X1 - noeud : n5 
+?X2 - arc : arc5 
+?X3 - noeud : n4 
+Preconditions:
+(and (estsur a1 n5))
+Effects:
+(and (estsur a1 n4)
+  (not (estsur a1 n5))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n1 
+?X2 - arc : arc1 
+?X3 - noeud : n2 
+Preconditions:
+(and (estsur a2 n1))
+Effects:
+(and (estsur a2 n2)
+  (not (estsur a2 n1))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n2 
+?X2 - arc : arc1 
+?X3 - noeud : n1 
+Preconditions:
+(and (estsur a2 n2))
+Effects:
+(and (estsur a2 n1)
+  (not (estsur a2 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n2 
+?X2 - arc : arc2 
+?X3 - noeud : n3 
+Preconditions:
+(and (estsur a2 n2))
+Effects:
+(and (estsur a2 n3)
+  (not (estsur a2 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n2 
+?X2 - arc : arc3 
+?X3 - noeud : n4 
+Preconditions:
+(and (estsur a2 n2))
+Effects:
+(and (estsur a2 n4)
+  (not (estsur a2 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n2 
+?X2 - arc : arc4 
+?X3 - noeud : n5 
+Preconditions:
+(and (estsur a2 n2))
+Effects:
+(and (estsur a2 n5)
+  (not (estsur a2 n2))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n3 
+?X2 - arc : arc2 
+?X3 - noeud : n2 
+Preconditions:
+(and (estsur a2 n3))
+Effects:
+(and (estsur a2 n2)
+  (not (estsur a2 n3))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n4 
+?X2 - arc : arc3 
+?X3 - noeud : n2 
+Preconditions:
+(and (estsur a2 n4))
+Effects:
+(and (estsur a2 n2)
+  (not (estsur a2 n4))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n4 
+?X2 - arc : arc5 
+?X3 - noeud : n5 
+Preconditions:
+(and (estsur a2 n4))
+Effects:
+(and (estsur a2 n5)
+  (not (estsur a2 n4))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n5 
+?X2 - arc : arc4 
+?X3 - noeud : n2 
+Preconditions:
+(and (estsur a2 n5))
+Effects:
+(and (estsur a2 n2)
+  (not (estsur a2 n5))
+
+Action sedeplace
+Instantiations:
+?X0 - agent : a2 
+?X1 - noeud : n5 
+?X2 - arc : arc5 
+?X3 - noeud : n4 
+Preconditions:
+(and (estsur a2 n5))
+Effects:
+(and (estsur a2 n4)
+  (not (estsur a2 n5))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc1 
+?X3 - noeud : n1 
+?X4 - noeud : n2 
+Preconditions:
+(and (estsur a1 n1)
+  (estsur a2 n1)
+  (estcontamine arc1))
+Effects:
+(and (estsur a1 n2)
+  (estdecontamine arc1)
+  (not (estsur a1 n1)
+  (not (estcontamine arc1))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc1 
+?X3 - noeud : n2 
+?X4 - noeud : n1 
+Preconditions:
+(and (estsur a1 n2)
+  (estsur a2 n2)
+  (estcontamine arc1))
+Effects:
+(and (estsur a1 n1)
+  (estdecontamine arc1)
+  (not (estsur a1 n2)
+  (not (estcontamine arc1))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc2 
+?X3 - noeud : n2 
+?X4 - noeud : n3 
+Preconditions:
+(and (estsur a1 n2)
+  (estsur a2 n2)
+  (estcontamine arc2))
+Effects:
+(and (estsur a1 n3)
+  (estdecontamine arc2)
+  (not (estsur a1 n2)
+  (not (estcontamine arc2))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc2 
+?X3 - noeud : n3 
+?X4 - noeud : n2 
+Preconditions:
+(and (estsur a1 n3)
+  (estsur a2 n3)
+  (estcontamine arc2))
+Effects:
+(and (estsur a1 n2)
+  (estdecontamine arc2)
+  (not (estsur a1 n3)
+  (not (estcontamine arc2))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc3 
+?X3 - noeud : n2 
+?X4 - noeud : n4 
+Preconditions:
+(and (estsur a1 n2)
+  (estsur a2 n2)
+  (estcontamine arc3))
+Effects:
+(and (estsur a1 n4)
+  (estdecontamine arc3)
+  (not (estsur a1 n2)
+  (not (estcontamine arc3))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc3 
+?X3 - noeud : n4 
+?X4 - noeud : n2 
+Preconditions:
+(and (estsur a1 n4)
+  (estsur a2 n4)
+  (estcontamine arc3))
+Effects:
+(and (estsur a1 n2)
+  (estdecontamine arc3)
+  (not (estsur a1 n4)
+  (not (estcontamine arc3))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc4 
+?X3 - noeud : n2 
+?X4 - noeud : n5 
+Preconditions:
+(and (estsur a1 n2)
+  (estsur a2 n2)
+  (estcontamine arc4))
+Effects:
+(and (estsur a1 n5)
+  (estdecontamine arc4)
+  (not (estsur a1 n2)
+  (not (estcontamine arc4))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc4 
+?X3 - noeud : n5 
+?X4 - noeud : n2 
+Preconditions:
+(and (estsur a1 n5)
+  (estsur a2 n5)
+  (estcontamine arc4))
+Effects:
+(and (estsur a1 n2)
+  (estdecontamine arc4)
+  (not (estsur a1 n5)
+  (not (estcontamine arc4))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc5 
+?X3 - noeud : n4 
+?X4 - noeud : n5 
+Preconditions:
+(and (estsur a1 n4)
+  (estsur a2 n4)
+  (estcontamine arc5))
+Effects:
+(and (estsur a1 n5)
+  (estdecontamine arc5)
+  (not (estsur a1 n4)
+  (not (estcontamine arc5))
+
+Action decontamineraxe
+Instantiations:
+?X0 - agent : a1 
+?X1 - agent : a2 
+?X2 - arc : arc5 
+?X3 - noeud : n5 
+?X4 - noeud : n4 
+Preconditions:
+(and (estsur a1 n5)
+  (estsur a2 n5)
+  (estcontamine arc5))
+Effects:
+(and (estsur a1 n4)
+  (estdecontamine arc5)
+  (not (estsur a1 n5)
+  (not (estcontamine arc5))
+
+
+Initial state:
+(and (estsur a1 n1)
+ (estsur a2 n1)
+ (estcontamine arc1)
+ (estcontamine arc2)
+ (estcontamine arc3)
+ (estcontamine arc4)
+ (estcontamine arc5)
+ (liaison arc1 n1 n2)
+ (liaison arc1 n2 n1)
+ (liaison arc2 n2 n3)
+ (liaison arc2 n3 n2)
+ (liaison arc3 n2 n4)
+ (liaison arc3 n4 n2)
+ (liaison arc4 n2 n5)
+ (liaison arc4 n5 n2)
+ (liaison arc5 n4 n5)
+ (liaison arc5 n5 n4)
+ (sontdifferents a1 a2)
+)
+
+Goal:
+(and (estdecontamine arc1)
+  (estdecontamine arc2)
+  (estdecontamine arc3)
+  (estdecontamine arc4)
+  (estdecontamine arc5))
+
+* Starting search 
+# WARNING: Unable to get Instrumentation. Dynamic Attach failed. You may add this JAR as -javaagent manually, or supply -Djdk.attach.allowAttachSelf
+# WARNING: Unable to attach Serviceability Agent. You can try again with escalated privileges. Two options: a) use -Djol.tryWithSudo=true to try with sudo; b) echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
+* search succeeded
+Action : 512
+270
+Liste des préconditions : [ [-11, 11, ]]
+Liste des effets positifs : [ [-11, 22, ]]
+Liste des effets négatifs : [ [-11, -21, ]]
+Action : 513
+270
+Liste des préconditions : [ [-12, 12, ]]
+Liste des effets positifs : [ [-12, 21, ]]
+Liste des effets négatifs : [ [-12, -22, ]]
+Action : 514
+270
+Liste des préconditions : [ [-13, 12, ]]
+Liste des effets positifs : [ [-13, 23, ]]
+Liste des effets négatifs : [ [-13, -22, ]]
+Action : 515
+270
+Liste des préconditions : [ [-14, 12, ]]
+Liste des effets positifs : [ [-14, 24, ]]
+Liste des effets négatifs : [ [-14, -22, ]]
+Action : 516
+270
+Liste des préconditions : [ [-15, 12, ]]
+Liste des effets positifs : [ [-15, 25, ]]
+Liste des effets négatifs : [ [-15, -22, ]]
+Action : 517
+270
+Liste des préconditions : [ [-16, 13, ]]
+Liste des effets positifs : [ [-16, 22, ]]
+Liste des effets négatifs : [ [-16, -23, ]]
+Action : 518
+270
+Liste des préconditions : [ [-17, 14, ]]
+Liste des effets positifs : [ [-17, 22, ]]
+Liste des effets négatifs : [ [-17, -24, ]]
+Action : 519
+270
+Liste des préconditions : [ [-18, 14, ]]
+Liste des effets positifs : [ [-18, 25, ]]
+Liste des effets négatifs : [ [-18, -24, ]]
+Action : 520
+270
+Liste des préconditions : [ [-19, 15, ]]
+Liste des effets positifs : [ [-19, 22, ]]
+Liste des effets négatifs : [ [-19, -25, ]]
+Action : 521
+270
+Liste des préconditions : [ [-110, 15, ]]
+Liste des effets positifs : [ [-110, 24, ]]
+Liste des effets négatifs : [ [-110, -25, ]]
+Action : 522
+270
+Liste des préconditions : [ [-111, 16, ]]
+Liste des effets positifs : [ [-111, 27, ]]
+Liste des effets négatifs : [ [-111, -26, ]]
+Action : 11
+270
+Liste des préconditions : [ [-112, 17, ]]
+Liste des effets positifs : [ [-112, 26, ]]
+Liste des effets négatifs : [ [-112, -27, ]]
+Action : 523
+270
+Liste des préconditions : [ [-113, 17, ]]
+Liste des effets positifs : [ [-113, 28, ]]
+Liste des effets négatifs : [ [-113, -27, ]]
+Action : 12
+270
+Liste des préconditions : [ [-114, 17, ]]
+Liste des effets positifs : [ [-114, 29, ]]
+Liste des effets négatifs : [ [-114, -27, ]]
+Action : 524
+270
+Liste des préconditions : [ [-115, 17, ]]
+Liste des effets positifs : [ [-115, 210, ]]
+Liste des effets négatifs : [ [-115, -27, ]]
+Action : 13
+270
+Liste des préconditions : [ [-116, 18, ]]
+Liste des effets positifs : [ [-116, 27, ]]
+Liste des effets négatifs : [ [-116, -28, ]]
+Action : 525
+270
+Liste des préconditions : [ [-117, 19, ]]
+Liste des effets positifs : [ [-117, 27, ]]
+Liste des effets négatifs : [ [-117, -29, ]]
+Action : 14
+270
+Liste des préconditions : [ [-118, 19, ]]
+Liste des effets positifs : [ [-118, 210, ]]
+Liste des effets négatifs : [ [-118, -29, ]]
+Action : 526
+270
+Liste des préconditions : [ [-119, 110, ]]
+Liste des effets positifs : [ [-119, 27, ]]
+Liste des effets négatifs : [ [-119, -210, ]]
+Action : 15
+270
+Liste des préconditions : [ [-120, 110, ]]
+Liste des effets positifs : [ [-120, 29, ]]
+Liste des effets négatifs : [ [-120, -210, ]]
+Action : 527
+270
+Liste des préconditions : [ [-121, 11, ][-121, 16, ][-121, 111, ]]
+Liste des effets positifs : [ [-121, 22, ][-121, 212, ]]
+Liste des effets négatifs : [ [-121, -21, ][-121, -211, ]]
+Action : 16
+270
+Liste des préconditions : [ [-122, 12, ][-122, 17, ][-122, 111, ]]
+Liste des effets positifs : [ [-122, 21, ][-122, 212, ]]
+Liste des effets négatifs : [ [-122, -22, ][-122, -211, ]]
+Action : 528
+270
+Liste des préconditions : [ [-123, 12, ][-123, 17, ][-123, 113, ]]
+Liste des effets positifs : [ [-123, 23, ][-123, 214, ]]
+Liste des effets négatifs : [ [-123, -22, ][-123, -213, ]]
+Action : 17
+270
+Liste des préconditions : [ [-124, 13, ][-124, 18, ][-124, 113, ]]
+Liste des effets positifs : [ [-124, 22, ][-124, 214, ]]
+Liste des effets négatifs : [ [-124, -23, ][-124, -213, ]]
+Action : 529
+270
+Liste des préconditions : [ [-125, 12, ][-125, 17, ][-125, 115, ]]
+Liste des effets positifs : [ [-125, 24, ][-125, 216, ]]
+Liste des effets négatifs : [ [-125, -22, ][-125, -215, ]]
+Action : 18
+270
+Liste des préconditions : [ [-126, 14, ][-126, 19, ][-126, 115, ]]
+Liste des effets positifs : [ [-126, 22, ][-126, 216, ]]
+Liste des effets négatifs : [ [-126, -24, ][-126, -215, ]]
+Action : 530
+270
+Liste des préconditions : [ [-127, 12, ][-127, 17, ][-127, 117, ]]
+Liste des effets positifs : [ [-127, 25, ][-127, 218, ]]
+Liste des effets négatifs : [ [-127, -22, ][-127, -217, ]]
+Action : 19
+270
+Liste des préconditions : [ [-128, 15, ][-128, 110, ][-128, 117, ]]
+Liste des effets positifs : [ [-128, 22, ][-128, 218, ]]
+Liste des effets négatifs : [ [-128, -25, ][-128, -217, ]]
+Action : 21
+270
+Liste des préconditions : [ [-129, 14, ][-129, 19, ][-129, 119, ]]
+Liste des effets positifs : [ [-129, 25, ][-129, 220, ]]
+Liste des effets négatifs : [ [-129, -24, ][-129, -219, ]]
+Action : 22
+270
+Liste des préconditions : [ [-130, 15, ][-130, 110, ][-130, 119, ]]
+Liste des effets positifs : [ [-130, 24, ][-130, 220, ]]
+Liste des effets négatifs : [ [-130, -25, ][-130, -219, ]]
