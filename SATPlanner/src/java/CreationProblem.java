@@ -29,7 +29,9 @@ public class CreationProblem {
     private HashMap<Integer, HashMap<Integer, List<List<List<Integer>>>>> stepActionsHashMap = new HashMap<>();
     //private HashMap<Integer, List<List<List<Integer>>>> actionsHashMap = new HashMap<>();
     private HashMap<Integer, List<List<List<Integer>>>> actionsList = new HashMap<>();
+    // private HashMap<Integer, List<List<List<Integer>>>> stepTransitionsHashMap = new HashMap<>();
     private List<List<List<Integer>>> transitionsList = new ArrayList<>();
+    // private HashMap<Integer, List<List<List<Integer>>>> stepDisjunctionsHashMap = new HashMap<>();
     private List<List<List<Integer>>> disjunctionList = new ArrayList<>();
     // private final BitVector initList;
     // private final BitVector goalList;
@@ -74,6 +76,9 @@ public class CreationProblem {
     private void enumerateActionsForMinSteps() {
         for (int step = 0; step < nbSteps; step++) {
             HashMap<Integer, List<List<List<Integer>>>> actionsHashMap = new HashMap<>();
+            List<List<Integer>> transitionListAtStepI = new ArrayList<>();
+            List<List<Integer>> actionDisjunctionListAtStepI = new ArrayList<>();
+
             for (int i = 0; i < nbActions; i++) {
                 Action a = problem.getActions().get(i);
                 BitVector precond = a.getPrecondition().getPositiveFluents();
@@ -84,68 +89,66 @@ public class CreationProblem {
                 List<List<Integer>> preconditionList = new ArrayList<>();
                 List<List<Integer>> positiveEffectList = new ArrayList<>();
                 List<List<Integer>> negativeEffectList = new ArrayList<>();
-                List<List<Integer>> transitionListAtStepI = new ArrayList<>();
-                List<List<Integer>> actionDisjunctionListAtStepI = new ArrayList<>();
 
                 for (int j = 0; j < nbFluents; j++) {
                     //Adding action preconditions and effect
-                    List<Integer> clausePos = null;
                     if (precond.get(j)) {
                         List<Integer> clause = new ArrayList<Integer>();
-                        clause.add(-getIndex(i + 1, step));
+                        clause.add(-getIndex(nbFluents+ i + 1, step));
                         clause.add(getIndex(j + 1, step));
                         preconditionList.add(clause);
                     }
+                    List<Integer> clausePos = null;
                     if (positiveEff.get(j)) {
                         clausePos = new ArrayList<Integer>();
-                        clausePos.add(-getIndex(i + 1, step));
+                        clausePos.add(-getIndex(nbFluents+ i + 1, step));
                         clausePos.add(getIndex(j + 1, step + 1));
                         positiveEffectList.add(clausePos);
                     }
                     List<Integer> clauseNeg = null;
                     if (negativeEff.get(j)) {
                         clauseNeg = new ArrayList<Integer>();
-                        clauseNeg.add(-getIndex(i + 1, step));
+                        clauseNeg.add(-getIndex(nbFluents+ i + 1, step));
                         clauseNeg.add(-getIndex(j + 1, step + 1));
                         negativeEffectList.add(clauseNeg);
                     }
                     //Adding state transitions
-                    // if(clausePos != null){
-                    //     List<Integer> clause = new ArrayList<Integer>();
-                    //     clause.add(getIndex(j+1, step));
-                    //     clause.add(-getIndex(j+1, step+1));
-                    //     clause.add(getIndex(i+1, step));
-                    //     transitionListAtStepI.add(clause);
-                    // }
-                    // if(clauseNeg != null){
-                    //     List<Integer> clause = new ArrayList<Integer>();
-                    //     clause.add(-getIndex(j+1, step));
-                    //     clause.add(getIndex(j+1, step+1));
-                    //     clause.add(getIndex(i+1, step));
-                    //     transitionListAtStepI.add(clause);
-                    // }
+                    if(clausePos != null){
+                        List<Integer> clause = new ArrayList<Integer>();
+                        clause.add(getIndex(j+1, step));
+                        clause.add(-getIndex(j+1, step+1));
+                        clause.add(getIndex(nbFluents+i+1, step));
+                        transitionListAtStepI.add(clause);
+                    }
+                    if(clauseNeg != null){
+                        List<Integer> clause = new ArrayList<Integer>();
+                        clause.add(-getIndex(j+1, step));
+                        clause.add(getIndex(j+1, step+1));
+                        clause.add(getIndex(nbFluents+i+1, step));
+                        transitionListAtStepI.add(clause);
+                    }
                 }
-                //Adding action disjunction
-                // for(int j=0; j<nbActions; j++){
-                //     Action b = problem.getActions().get(j);
-                //     if(i != j && a.getName().equals(b.getName())){
-                //         List<Integer> clause = new ArrayList<Integer>();
-                //         clause.add(-getIndex(i+1, step));
-                //         clause.add(-getIndex(j+1, step));
-                //         actionDisjunctionListAtStepI.add(clause);
-                //     }
-                // }
+                // Adding action disjunction
+                for(int j=0; j<nbActions; j++){
+                    Action b = problem.getActions().get(j);
+                    if(i != j && a.getName().equals(b.getName())){
+                        List<Integer> clause = new ArrayList<Integer>();
+                        clause.add(-getIndex(nbFluents+i+1, step));
+                        clause.add(-getIndex(nbFluents+j+1, step));
+                        actionDisjunctionListAtStepI.add(clause);
+                    }
+                }
                 //Inserting preconditionsList and effectsList in HashMap representing each action at each step
                 actionAtStepI.add(preconditionList);
                 actionAtStepI.add(positiveEffectList);
                 actionAtStepI.add(negativeEffectList);
                 //actionsList.put(getIndex(i + 1, step), actionAtStepI);
-                actionsHashMap.put(i+1, actionAtStepI);
+                actionsHashMap.put(nbFluents+i+1, actionAtStepI);
                 
-                //Inserting state transitions and action disjuctions in their respective list for each action at each step
-                // transitionsList.add(transitionListAtStepI);
-                // disjunctionList.add(actionDisjunctionListAtStepI);
+                //Inserting state transitions and action disjuctions in their respective list for each action at each step 
             }
+            transitionsList.add(transitionListAtStepI);
+            disjunctionList.add(actionDisjunctionListAtStepI);
             stepActionsHashMap.put(step, actionsHashMap);
         }
     }
@@ -171,8 +174,8 @@ public class CreationProblem {
     public void showInitialList() {
         System.out.print("Initial List : [");
         for (int i = 0; i < initialList.size(); i++) {
-            System.out.print("(" + decodeIndex(initialList.get(i).get(0))[0] + ", "
-                    + decodeIndex(initialList.get(i).get(0))[1] + "), ");
+            System.out.print("[(" + decodeIndex(initialList.get(i).get(0))[0] + ","
+                    + decodeIndex(initialList.get(i).get(0))[1] + ")] et ");
         }
         System.out.println("]");
     }
@@ -180,8 +183,8 @@ public class CreationProblem {
     public void showGoalList() {
         System.out.print("Goal List : [");
         for (int i = 0; i < goalList.size(); i++) {
-            System.out.print("(" + decodeIndex(goalList.get(i).get(0))[0] + ", "
-                    + decodeIndex(goalList.get(i).get(0))[1] + "), ");
+            System.out.print("[(" + decodeIndex(goalList.get(i).get(0))[0] + ","
+                    + decodeIndex(goalList.get(i).get(0))[1] + ")] et ");
         }
         System.out.println("]");
     }
@@ -191,61 +194,64 @@ public class CreationProblem {
         System.out.println("Pour l'étape n°" + 0);
         for (int i = 0; i < nbActions; i++) {
             System.out.println("Action n°" + (i+1));
-            List<List<Integer>> precondList = actionsHashMap.get(i+1).get(0); //actionsList.get(getIndex(i + 1, 1)).get(0);
+            List<List<Integer>> precondList = actionsHashMap.get(nbFluents+i+1).get(0); //actionsList.get(getIndex(i + 1, 1)).get(0);
             System.out.print("Liste des préconditions : [ ");
             for (int j = 0; j < precondList.size(); j++) {
                 System.out.print("[");
                 for (int k = 0; k < precondList.get(j).size(); k++)
-                System.out.print("(" + decodeIndex(precondList.get(j).get(k))[0] + ", " + decodeIndex(precondList.get(j).get(k))[1] + "), ");
+                    System.out.print("(" + decodeIndex(precondList.get(j).get(k))[0] + "," + decodeIndex(precondList.get(j).get(k))[1] + ")V");
                     //System.out.print(precondList.get(j).get(k) + ", ");
-                System.out.print("]");
+                System.out.print("] et ");
             }
             System.out.println("]");
 
-            List<List<Integer>> posEffectList = actionsHashMap.get(i+1).get(1); //actionsList.get(getIndex(i + 1, 1)).get(1);
+            List<List<Integer>> posEffectList = actionsHashMap.get(nbFluents+i+1).get(1); //actionsList.get(getIndex(i + 1, 1)).get(1);
             System.out.print("Liste des effets positifs : [ ");
             for (int j = 0; j < posEffectList.size(); j++) {
                 System.out.print("[");
                 for (int k = 0; k < posEffectList.get(j).size(); k++)
-                    System.out.print("(" + decodeIndex(posEffectList.get(j).get(k))[0] + ", " + decodeIndex(posEffectList.get(j).get(k))[1] + "), ");
+                    System.out.print("(" + decodeIndex(posEffectList.get(j).get(k))[0] + "," + decodeIndex(posEffectList.get(j).get(k))[1] + ")V");
                     //System.out.print(posEffectList.get(j).get(k) + ", ");
-                System.out.print("]");
+                System.out.print("] et ");
             }
             System.out.println("]");
 
-            List<List<Integer>> negEffectList = actionsHashMap.get(i+1).get(2); //actionsList.get(getIndex(i + 1, 1)).get(2);
+            List<List<Integer>> negEffectList = actionsHashMap.get(nbFluents+i+1).get(2); //actionsList.get(getIndex(i + 1, 1)).get(2);
             System.out.print("Liste des effets négatifs : [ ");
             for (int j = 0; j < negEffectList.size(); j++) {
                 System.out.print("[");
                 for (int k = 0; k < negEffectList.get(j).size(); k++)
-                    System.out.print("(" + decodeIndex(negEffectList.get(j).get(k))[0] + ", " + decodeIndex(negEffectList.get(j).get(k))[1] + "), ");
+                    System.out.print("(" + decodeIndex(negEffectList.get(j).get(k))[0] + "," + decodeIndex(negEffectList.get(j).get(k))[1] + ")V");
                     //System.out.print(negEffectList.get(j).get(k) + ", ");
-                System.out.print("]");
+                System.out.print("] et ");
             }
             System.out.println("]");
         }
-
-        // System.out.print("Liste des transitions d'actions à l'étape 0 : [ ");
-        // List<List<Integer>> transitionListAtStep0 = transitionsList.get(0);
-        // for(int i=0; i<transitionListAtStep0.size(); i++){
-        //     System.out.print("[");
-        //     for(int j=0; i<transitionListAtStep0.get(i).size(); j++){
-        //         System.out.print(transitionListAtStep0.get(i).get(j) + ", ");
-        //     }
-        //     System.out.print("]");
-        // }
-        // System.out.println("]");
-
-        // System.out.print("Liste de la disjonction d'actions à l'étape 0: [ ");
-        // List<List<Integer>> disjunctionListAtStep0 = disjunctionList.get(0);
-        // for(int i=0; i<disjunctionListAtStep0.size(); i++){
-        //     System.out.print("[");
-        //     for(int j=0; i<disjunctionListAtStep0.get(i).size(); j++){
-        //         System.out.print(disjunctionListAtStep0.get(i).get(j) + ", ");
-        //     }
-        //     System.out.print("]");
-        // }
-        // System.out.println("]");
+        System.out.println();
+        System.out.print("Liste des transitions d'actions à l'étape 0 : [ ");
+        List<List<Integer>> transitionListAtStep0 = transitionsList.get(0);
+        System.out.print("[");
+        for(int i=0; i<transitionListAtStep0.size(); i++){
+            System.out.print("[");
+            for(int j=0; j<transitionListAtStep0.get(i).size(); j++){
+                System.out.print("(" + decodeIndex(transitionListAtStep0.get(i).get(j))[0]+ "," + decodeIndex(transitionListAtStep0.get(i).get(j))[1] + ")V");
+            }
+            System.out.print("] et ");
+        }
+        System.out.print("]");
+        System.out.println();
+        System.out.println();
+        System.out.print("Liste de la disjonction d'actions à l'étape 0: [ ");
+        List<List<Integer>> disjunctionListAtStep0 = disjunctionList.get(0);
+        System.out.print("[");
+        for(int i=0; i<disjunctionListAtStep0.size(); i++){
+            System.out.print("[");
+            for(int j=0; j<disjunctionListAtStep0.get(i).size(); j++){
+                System.out.print("(" + decodeIndex(disjunctionListAtStep0.get(i).get(j))[0]+ "," + decodeIndex(disjunctionListAtStep0.get(i).get(j))[1] + ")V");
+            }
+            System.out.print("] et ");
+        }
+        System.out.println("]");
     }
 
     public int getNbActions() {
