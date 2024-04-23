@@ -1,28 +1,20 @@
-import fr.uga.pddl4j.heuristics.state.StateHeuristic;
-import fr.uga.pddl4j.parser.DefaultParsedProblem;
-import fr.uga.pddl4j.parser.RequireKey;
-import fr.uga.pddl4j.plan.Plan;
-import fr.uga.pddl4j.plan.SequentialPlan;
-import fr.uga.pddl4j.planners.AbstractPlanner;
-import fr.uga.pddl4j.planners.Planner;
-import fr.uga.pddl4j.planners.PlannerConfiguration;
-import fr.uga.pddl4j.planners.ProblemNotSupportedException;
-import fr.uga.pddl4j.planners.SearchStrategy;
+import fr.uga.pddl4j.heuristics.state.*;
+import fr.uga.pddl4j.parser.*;
+import fr.uga.pddl4j.plan.*;
+import fr.uga.pddl4j.planners.*;
 import fr.uga.pddl4j.planners.statespace.search.StateSpaceSearch;
-import fr.uga.pddl4j.problem.DefaultProblem;
-import fr.uga.pddl4j.problem.Problem;
-import fr.uga.pddl4j.problem.State;
-import fr.uga.pddl4j.problem.operator.Action;
-import fr.uga.pddl4j.problem.operator.ConditionalEffect;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import fr.uga.pddl4j.problem.*;
+import fr.uga.pddl4j.problem.operator.*;
+import org.apache.logging.log4j.*;
 import picocli.CommandLine;
 
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Set;
+import java.util.*;
+
+import org.sat4j.core.VecInt;
+import org.sat4j.minisat.SolverFactory;
+import org.sat4j.specs.ContradictionException;
+import org.sat4j.specs.ISolver;
+import org.sat4j.specs.TimeoutException;
 
 /**
  * The class is an example. It shows how to create a simple A* search planner able to
@@ -48,160 +40,11 @@ public class OurPlanner extends AbstractPlanner {
      */
     private static final Logger LOGGER = LogManager.getLogger(OurPlanner.class.getName());
     
-    /**
-     * The weight of the heuristic.
-     */
-    private double heuristicWeight;
+    private final int VAR_COUNT = 100000;
 
-    /**
-     * The name of the heuristic used by the planner.
-     */
-    private StateHeuristic.Name heuristic;
+    private final int CLAUSE_COUNT = 100000;
 
-    /**
-     * The HEURISTIC property used for planner configuration.
-     */
-    public static final String HEURISTIC_SETTING = "HEURISTIC";
-
-    /**
-     * The default value of the HEURISTIC property used for planner configuration.
-     */
-    public static final StateHeuristic.Name DEFAULT_HEURISTIC = StateHeuristic.Name.FAST_FORWARD;
-
-    /**
-     * The WEIGHT_HEURISTIC property used for planner configuration.
-     */
-    public static final String WEIGHT_HEURISTIC_SETTING = "WEIGHT_HEURISTIC";
-
-    /**
-     * The default value of the WEIGHT_HEURISTIC property used for planner configuration.
-     */
-    public static final double DEFAULT_WEIGHT_HEURISTIC = 1.0;
-
-        /**
-     * Creates a new A* search planner with the default configuration.
-     */
-    public OurPlanner() {
-        this(OurPlanner.getDefaultConfiguration());
-    }
-
-    /**
-     * Creates a new A* search planner with a specified configuration.
-     *
-     * @param configuration the configuration of the planner.
-     */
-    public OurPlanner(final PlannerConfiguration configuration) {
-        super();
-        this.setConfiguration(configuration);
-    }
-
-    /**
-     * Sets the weight of the heuristic.
-     *
-     * @param weight the weight of the heuristic. The weight must be greater than 0.
-     * @throws IllegalArgumentException if the weight is strictly less than 0.
-     */
-    @CommandLine.Option(names = {"-w", "--weight"}, defaultValue = "1.0",
-        paramLabel = "<weight>", description = "Set the weight of the heuristic (preset 1.0).")
-    public void setHeuristicWeight(final double weight) {
-        if (weight <= 0) {
-            throw new IllegalArgumentException("Weight <= 0");
-        }
-        this.heuristicWeight = weight;
-    }
-
-    /**
-     * Set the name of heuristic used by the planner to the solve a planning problem.
-     *
-     * @param heuristic the name of the heuristic.
-     */
-    @CommandLine.Option(names = {"-e", "--heuristic"}, defaultValue = "FAST_FORWARD",
-        description = "Set the heuristic : AJUSTED_SUM, AJUSTED_SUM2, AJUSTED_SUM2M, COMBO, "
-            + "MAX, FAST_FORWARD SET_LEVEL, SUM, SUM_MUTEX (preset: FAST_FORWARD)")
-    public void setHeuristic(StateHeuristic.Name heuristic) {
-        this.heuristic = heuristic;
-    }
-
-    /**
-     * Returns the name of the heuristic used by the planner to solve a planning problem.
-     *
-     * @return the name of the heuristic used by the planner to solve a planning problem.
-     */
-    public final StateHeuristic.Name getHeuristic() {
-        return this.heuristic;
-    }
-
-    /**
-     * Returns the weight of the heuristic.
-     *
-     * @return the weight of the heuristic.
-     */
-    public final double getHeuristicWeight() {
-        return this.heuristicWeight;
-    }
-
-    /**
-     * Returns the configuration of the planner.
-     *
-     * @return the configuration of the planner.
-     */
-    @Override
-    public PlannerConfiguration getConfiguration() {
-        final PlannerConfiguration config = super.getConfiguration();
-        config.setProperty(OurPlanner.HEURISTIC_SETTING, this.getHeuristic().toString());
-        config.setProperty(OurPlanner.WEIGHT_HEURISTIC_SETTING, Double.toString(this.getHeuristicWeight()));
-        return config;
-    }
-
-    /**
-     * Sets the configuration of the planner. If a planner setting is not defined in
-     * the specified configuration, the setting is initialized with its default value.
-     *
-     * @param configuration the configuration to set.
-     */
-    @Override
-    public void setConfiguration(final PlannerConfiguration configuration) {
-        super.setConfiguration(configuration);
-        if (configuration.getProperty(OurPlanner.WEIGHT_HEURISTIC_SETTING) == null) {
-            this.setHeuristicWeight(OurPlanner.DEFAULT_WEIGHT_HEURISTIC);
-        } else {
-            this.setHeuristicWeight(Double.parseDouble(configuration.getProperty(
-                OurPlanner.WEIGHT_HEURISTIC_SETTING)));
-        }
-        if (configuration.getProperty(OurPlanner.HEURISTIC_SETTING) == null) {
-            this.setHeuristic(OurPlanner.DEFAULT_HEURISTIC);
-        } else {
-            this.setHeuristic(StateHeuristic.Name.valueOf(configuration.getProperty(
-                OurPlanner.HEURISTIC_SETTING)));
-        }
-    }
-
-    /**
-    *
-    * @return the default arguments of the planner.
-    * @see PlannerConfiguration
-    */
-    public static PlannerConfiguration getDefaultConfiguration() {
-        PlannerConfiguration config = Planner.getDefaultConfiguration();
-        config.setProperty(OurPlanner.HEURISTIC_SETTING, OurPlanner.DEFAULT_HEURISTIC.toString());
-        config.setProperty(OurPlanner.WEIGHT_HEURISTIC_SETTING,
-            Double.toString(OurPlanner.DEFAULT_WEIGHT_HEURISTIC));
-        return config;
-    }
-
-    /**
-     * Checks the planner configuration and returns if the configuration is valid.
-     * A configuration is valid if (1) the domain and the problem files exist and
-     * can be read, (2) the timeout is greater than 0, (3) the weight of the
-     * heuristic is greater than 0 and (4) the heuristic is a not null.
-     *
-     * @return <code>true</code> if the configuration is valid <code>false</code> otherwise.
-     */
-    public boolean hasValidConfiguration() {
-        return super.hasValidConfiguration()
-            && this.getHeuristicWeight() > 0.0
-            && this.getHeuristic() != null;
-    }
+    private final long MAX_TIMER = 10 * 60 * 1000; // 10 minutes in milliseconds
 
 
     /**
@@ -218,6 +61,69 @@ public class OurPlanner extends AbstractPlanner {
     }
 
     /**
+     * Adds clauses to the SAT solver.
+     *
+     * @param solver      The SAT solver instance.
+     * @param clauses     List of clauses to add.
+     */
+    private boolean addClauses(ISolver solver, List<List<Integer>> clauseList) {
+        for (List<Integer> clause : clauseList) {
+            try {
+                // Check if the clause is non-empty
+                if (clause.size() > 0) {
+                    // Add the clause to the solver
+                    solver.addClause(new VecInt(clause.stream().mapToInt(Integer::intValue).toArray()));
+                } else {
+                    // Log a message if the clause has an invalid format
+                    LOGGER.info("Clause with invalid format!");
+                }
+            } catch (ContradictionException e) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    //Il faut faire une méthode qui ajoute toutes les clauses au démarrage et une pour chaque nouvelle itération !
+    private boolean addInitClauses(ISolver solver, CreationProblem cp) {
+        boolean addInitialState = addClauses(solver, cp.getInitialList());
+        boolean addActions = true;
+
+        for(int step=0; step < cp.getNbSteps(); step++) {
+            addActions = addActions && addClausesAtStep(solver, cp, step);
+        }
+        
+        return addInitialState && addActions;
+    }
+
+    private boolean addClausesAtStep(ISolver solver, CreationProblem cp, int step) {
+        boolean addInitialState = addClauses(solver, cp.getInitialList());
+        boolean addActions = true;
+        boolean addTransitionList = true;
+        boolean addDisjunctionList = true;
+        
+        HashMap<Integer, List<List<List<Integer>>>> actionsHashMap = cp.getStepActionsHashMap().get(step);
+        for (int i = 0; i < cp.getNbActions(); i++) {
+            List<List<Integer>> precondList = actionsHashMap.get(cp.getNbFluents()+i+1).get(0);
+            addActions = addClauses(solver, precondList);
+
+            List<List<Integer>> posEffectList = actionsHashMap.get(cp.getNbFluents()+i+1).get(1); //actionsList.get(getIndex(i + 1, 1)).get(1);
+            addActions = addActions && addClauses(solver, posEffectList);
+
+            List<List<Integer>> negEffectList = actionsHashMap.get(cp.getNbFluents()+i+1).get(2); //actionsList.get(getIndex(i + 1, 1)).get(2);
+            addActions = addActions && addClauses(solver, negEffectList);
+        }
+        
+        List<List<Integer>> transitionListAtStep = cp.getTransitionsList().get(step);
+        addTransitionList = addTransitionList && addClauses(solver, transitionListAtStep);
+
+        List<List<Integer>> disjunctionListAtStep = cp.getDisjunctionList().get(step);
+        addDisjunctionList = addDisjunctionList && addClauses(solver, disjunctionListAtStep);
+        
+        return addInitialState && addActions && addTransitionList && addDisjunctionList;
+    }
+
+    /**
      * Search a solution plan to a specified domain and problem using A*.
      *
      * @param problem the problem to solve.
@@ -227,25 +133,80 @@ public class OurPlanner extends AbstractPlanner {
     public Plan solve(final Problem problem) {
         // Creates the A* search strategy
         //C'est ici que l'on peut changer la stratégie de recherche d'une solution !
-        StateSpaceSearch search = StateSpaceSearch.getInstance(SearchStrategy.Name.ASTAR,
-            this.getHeuristic(), this.getHeuristicWeight(), this.getTimeout());
         LOGGER.info("* Starting search \n");
-        // Search a solution
-        Plan plan = search.searchPlan(problem);
-        /* To have access to the goal node
-        final Node goal = search.searchSolutionNode(problem);
-        Planner.getLogger().trace(problem.toString(goal));
-        Plan plan = search.extractPlan(goal, problem); */
-        // If a plan is found update the statistics of the planner and log search information
-        if (plan != null) {
-            LOGGER.info("* search succeeded\n");
-            this.getStatistics().setTimeToSearch(search.getSearchingTime());
-            this.getStatistics().setMemoryUsedToSearch(search.getMemoryUsed());
-        } else {
-            LOGGER.info("* search failed\n");
+
+        problem.instantiate();
+        FastForward ff = new FastForward(problem);
+        State init = new State(problem.getInitialState());
+        int nbStep = ff.estimate(init, problem.getGoal());
+
+        List<Fluent> fluents = new ArrayList<>(problem.getFluents());
+        List<Action> actions = new ArrayList<>(problem.getActions());
+
+        CreationProblem cp = new CreationProblem();
+
+        // Start the search timer
+        long searchTimeStart = System.currentTimeMillis();
+
+        boolean initIteration = true;
+        // Continue the search until the time limit is reached
+        while (System.currentTimeMillis() - searchTimeStart <= MAX_TIMER) {
+
+            System.out.println("Starting step " + nbStep);
+
+            // Create a new solver instance
+            ISolver solver = SolverFactory.newDefault();
+            solver.newVar(VAR_COUNT);
+            solver.setExpectedNumberOfClauses(CLAUSE_COUNT);
+
+            if(initIteration){
+                cp = new CreationProblem(problem, nbStep);
+                addInitClauses(solver, cp);
+            }
+
+            cp.createActionsForStep(nbStep);
+            cp.instantiateGoalStep(nbStep);
+
+            if (!addClausesAtStep(solver, cp, nbStep)) {
+                nbStep++;
+                continue;
+            }
+
+            try {
+                // Check if the solver found a satisfying assignment
+                if (solver.isSatisfiable()) {
+                    Plan plan = new SequentialPlan();
+                    int[] solution = solver.findModel();
+
+                    // Reconstruct the plan from the solution
+                    // Action action;
+                    // for (int s : solution) {
+                    //     for (SatVariable v : variables) {
+                    //         if (!v.isFluent() && v.getName() == s) {
+                    //             int index = (v.getName() % variableSize == 0) ?
+                    //                     actions.size() - 1 :
+                    //                     (v.getName() % variableSize) - fluents.size() - 1;
+
+                    //             action = actions.get(index);
+                    //             plan.add(v.getStep(), action);
+                    //             break;
+                    //         }
+                    //     }
+                    // }
+
+                    LOGGER.info("\nPlan found in {} seconds\n", ((float) (System.currentTimeMillis() - searchTimeStart) / 600));
+                    return plan;
+                }
+
+                nbStep++; // Increment step count for next iteration
+            } catch (TimeoutException e) {
+                throw new RuntimeException(e);
+            }
         }
-        // Return the plan found or null if the search fails.
-        return plan;
+        
+        // Log a message if the search timeout is exceeded
+        LOGGER.info("Search timeout: " + (MAX_TIMER / 60000) + " minutes exceeded");
+        return null;
     }
 
      /**

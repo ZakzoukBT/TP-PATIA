@@ -7,6 +7,7 @@ import fr.uga.pddl4j.problem.numeric.*;
 import fr.uga.pddl4j.problem.*;
 import fr.uga.pddl4j.plan.*;
 import fr.uga.pddl4j.util.*;
+import fr.uga.pddl4j.heuristics.state.*;
 import java.util.*;
 
 import java.io.FileNotFoundException;
@@ -22,23 +23,20 @@ import java.util.HashMap;
 public class CreationProblem {
     // private HashMap<Integer, List<Integer>> actions;
     private List<List<Integer>> initialList = new ArrayList<>();
-    private List<List<Integer>> goalList = new ArrayList<>();
-    //private List<List<Integer>> actionsList = new ArrayList<>();
+    private List<List<Integer>> goalList;
     //Clé = numéro de l'étape; Valeur = HashMap<Numéro Action, Listes précondition/effets +/effets - >
     //Le premier numéro d'étape est 0, le premier numéro d'action est 1
     private HashMap<Integer, HashMap<Integer, List<List<List<Integer>>>>> stepActionsHashMap = new HashMap<>();
     //private HashMap<Integer, List<List<List<Integer>>>> actionsHashMap = new HashMap<>();
-    private HashMap<Integer, List<List<List<Integer>>>> actionsList = new HashMap<>();
-    // private HashMap<Integer, List<List<List<Integer>>>> stepTransitionsHashMap = new HashMap<>();
+    //private HashMap<Integer, List<List<List<Integer>>>> actionsList = new HashMap<>();
     private List<List<List<Integer>>> transitionsList = new ArrayList<>();
-    // private HashMap<Integer, List<List<List<Integer>>>> stepDisjunctionsHashMap = new HashMap<>();
     private List<List<List<Integer>>> disjunctionList = new ArrayList<>();
-    // private final BitVector initList;
-    // private final BitVector goalList;
     private Problem problem;
-    private final int nbSteps;
-    private final int nbFluents; //Fluent = Prédicat
-    private final int nbActions;
+    private int nbSteps;
+    private int nbFluents; //Fluent = Prédicat
+    private int nbActions;
+
+    public CreationProblem() {}
 
     public CreationProblem(Problem problem, int nbSteps) {
         this.nbSteps = nbSteps;
@@ -46,18 +44,18 @@ public class CreationProblem {
         this.nbActions = problem.getActions().size();
         this.nbFluents = problem.getFluents().size();
         instantiateInitStep();
-        instantiateGoalStep();
+        enumerateActionsForMinSteps();
     }
 
-    private void constructClauseList(BitVector state, List<List<Integer>> list) {
+    private void constructClauseList(BitVector state, List<List<Integer>> list, int step) {
         for (int i = 0; i < nbFluents; i++) {
             if (state.get(i)) {
                 List<Integer> clause = new ArrayList<Integer>();
-                clause.add(getIndex(i + 1, 0));
+                clause.add(getIndex(i + 1, step));
                 list.add(clause);
             } else {
                 List<Integer> clause = new ArrayList<Integer>();
-                clause.add(-getIndex(i + 1, 0));
+                clause.add(-getIndex(i + 1, step));
                 list.add(clause);
             }
         }
@@ -65,12 +63,13 @@ public class CreationProblem {
 
     private void instantiateInitStep() {
         BitVector initState = problem.getInitialState().getPositiveFluents();
-        this.constructClauseList(initState, initialList);
+        this.constructClauseList(initState, initialList, 0);
     }
 
-    private void instantiateGoalStep() {
+    public void instantiateGoalStep(int numStep) {
+        goalList = new ArrayList<>();
         BitVector goalState = problem.getGoal().getPositiveFluents();
-        this.constructClauseList(goalState, goalList);
+        this.constructClauseList(goalState, goalList, numStep);
     }
 
     private void enumerateActionsForMinSteps() {
@@ -151,6 +150,84 @@ public class CreationProblem {
             disjunctionList.add(actionDisjunctionListAtStepI);
             stepActionsHashMap.put(step, actionsHashMap);
         }
+    }
+
+    public void createActionsForStep(int step) {
+        HashMap<Integer, List<List<List<Integer>>>> actionsHashMap = new HashMap<>();
+        List<List<Integer>> transitionListAtStepI = new ArrayList<>();
+        List<List<Integer>> actionDisjunctionListAtStepI = new ArrayList<>();
+
+        for (int i = 0; i < nbActions; i++) {
+            Action a = problem.getActions().get(i);
+            BitVector precond = a.getPrecondition().getPositiveFluents();
+                //Prendre les effets inconditionnels
+            BitVector positiveEff = a.getUnconditionalEffect().getPositiveFluents();
+            BitVector negativeEff = a.getUnconditionalEffect().getNegativeFluents();
+            List<List<List<Integer>>> actionAtStepI = new ArrayList<>();
+            List<List<Integer>> preconditionList = new ArrayList<>();
+            List<List<Integer>> positiveEffectList = new ArrayList<>();
+            List<List<Integer>> negativeEffectList = new ArrayList<>();
+
+            for (int j = 0; j < nbFluents; j++) {
+                //Adding action preconditions and effect
+                if (precond.get(j)) {
+                    List<Integer> clause = new ArrayList<Integer>();
+                    clause.add(-getIndex(nbFluents+ i + 1, step));
+                    clause.add(getIndex(j + 1, step));
+                    preconditionList.add(clause);
+                }
+                List<Integer> clausePos = null;
+                if (positiveEff.get(j)) {
+                    clausePos = new ArrayList<Integer>();
+                    clausePos.add(-getIndex(nbFluents+ i + 1, step));
+                    clausePos.add(getIndex(j + 1, step + 1));
+                    positiveEffectList.add(clausePos);
+                }
+                List<Integer> clauseNeg = null;
+                if (negativeEff.get(j)) {
+                    clauseNeg = new ArrayList<Integer>();
+                    clauseNeg.add(-getIndex(nbFluents+ i + 1, step));
+                    clauseNeg.add(-getIndex(j + 1, step + 1));
+                    negativeEffectList.add(clauseNeg);
+                }
+                //Adding state transitions
+                if(clausePos != null){
+                    List<Integer> clause = new ArrayList<Integer>();
+                    clause.add(getIndex(j+1, step));
+                    clause.add(-getIndex(j+1, step+1));
+                    clause.add(getIndex(nbFluents+i+1, step));
+                    transitionListAtStepI.add(clause);
+                }
+                if(clauseNeg != null){
+                    List<Integer> clause = new ArrayList<Integer>();
+                    clause.add(-getIndex(j+1, step));
+                    clause.add(getIndex(j+1, step+1));
+                    clause.add(getIndex(nbFluents+i+1, step));
+                    transitionListAtStepI.add(clause);
+                }
+            }
+            // Adding action disjunction
+            for(int j=0; j<nbActions; j++){
+                Action b = problem.getActions().get(j);
+                if(i != j && a.getName().equals(b.getName())){
+                    List<Integer> clause = new ArrayList<Integer>();
+                    clause.add(-getIndex(nbFluents+i+1, step));
+                    clause.add(-getIndex(nbFluents+j+1, step));
+                    actionDisjunctionListAtStepI.add(clause);
+                }
+            }
+            //Inserting preconditionsList and effectsList in HashMap representing each action at each step
+            actionAtStepI.add(preconditionList);
+            actionAtStepI.add(positiveEffectList);
+            actionAtStepI.add(negativeEffectList);
+            //actionsList.put(getIndex(i + 1, step), actionAtStepI);
+            actionsHashMap.put(nbFluents+i+1, actionAtStepI);
+            
+            //Inserting state transitions and action disjuctions in their respective list for each action at each step 
+        }
+        transitionsList.add(transitionListAtStepI);
+        disjunctionList.add(actionDisjunctionListAtStepI);
+        stepActionsHashMap.put(step, actionsHashMap);
     }
 
     //Fonction Cantor permettant de générer un entier unique qui code une association numéro de proposition/numéro de l'étape
@@ -258,6 +335,37 @@ public class CreationProblem {
         return nbActions;
     }
 
+    public int getNbSteps() {
+        return nbSteps;
+    }
+    
+    public int getNbFluents() {
+        return nbFluents;
+    }
+
+    public List<List<Integer>> getInitialList(){
+        return initialList;
+    }
+
+    public List<List<Integer>> getGoalList(){
+        return goalList;
+    }
+
+    public HashMap<Integer, HashMap<Integer, List<List<List<Integer>>>>> getStepActionsHashMap() {
+        return stepActionsHashMap;
+    }
+
+    public List<List<List<Integer>>> getTransitionsList() {
+        return transitionsList;
+    }
+
+    public List<List<List<Integer>>> getDisjunctionList() {
+        return disjunctionList;
+    }
+
+    
+
+
     /**
      * The main method the class. The first argument must be the path to the PDDL domain description and the second
      * argument the path to the PDDL problem description.
@@ -296,10 +404,12 @@ public class CreationProblem {
                 problem.instantiate();
 
                 //Instantiate OurPlanner to find out how many steps are needed to find a solution
-                OurPlanner p = new OurPlanner();
+                FastForward ff = new FastForward(problem);
+                State init = new State(problem.getInitialState());
+                int nbSteps = ff.estimate(init, problem.getGoal());
+                /*OurPlanner p = new OurPlanner();
                 Plan result = p.solve(problem);
-                if (result != null) {
-                    int nbSteps = result.actions().size();
+                if (result != null) {*/
                     CreationProblem cp = new CreationProblem(problem, nbSteps);
                     System.out.println("Nb steps : " + nbSteps + "\n nb Actions possibles :" + cp.getNbActions());
                     cp.showInitialList();
@@ -308,7 +418,7 @@ public class CreationProblem {
                     cp.showActionsList();
                     // Put the actions of the instantiated problem and their index in a HashMap
 
-                }
+                //}
             }
             //     // This exception could happen if the domain or the problem does not exist
         } catch (FileNotFoundException e) {
