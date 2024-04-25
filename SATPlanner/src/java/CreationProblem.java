@@ -236,7 +236,7 @@ public class CreationProblem {
     }
 
     //Fonction inverse de Cantor pout obtenir le numéro de l'action (x) et l'étape (y)
-    private static int[] decodeIndex(int codage){
+    public static int[] decodeIndex(int codage){
         int positive = Math.abs(codage);
         double calcul = (Math.sqrt(8 * positive + 1) - 1) / 2.0;
         int w = (int)Math.floor(calcul);
@@ -267,8 +267,9 @@ public class CreationProblem {
     }
 
     public void showActionsList() {
-        HashMap<Integer, List<List<List<Integer>>>> actionsHashMap = stepActionsHashMap.get(0);
-        System.out.println("Pour l'étape n°" + 0);
+        for(int act = 0; act < 2 ; act++){
+            HashMap<Integer, List<List<List<Integer>>>> actionsHashMap = stepActionsHashMap.get(act);
+        System.out.println("Pour l'étape n°" + act);
         for (int i = 0; i < nbActions; i++) {
             System.out.println("Action n°" + (i+1));
             List<List<Integer>> precondList = actionsHashMap.get(nbFluents+i+1).get(0); //actionsList.get(getIndex(i + 1, 1)).get(0);
@@ -305,8 +306,8 @@ public class CreationProblem {
             System.out.println("]");
         }
         System.out.println();
-        System.out.print("Liste des transitions d'actions à l'étape 0 : [ ");
-        List<List<Integer>> transitionListAtStep0 = transitionsList.get(0);
+        System.out.print("Liste des transitions d'actions à l'étape " + act + " : [ ");
+        List<List<Integer>> transitionListAtStep0 = transitionsList.get(act);
         System.out.print("[");
         for(int i=0; i<transitionListAtStep0.size(); i++){
             System.out.print("[");
@@ -318,8 +319,8 @@ public class CreationProblem {
         System.out.print("]");
         System.out.println();
         System.out.println();
-        System.out.print("Liste de la disjonction d'actions à l'étape 0: [ ");
-        List<List<Integer>> disjunctionListAtStep0 = disjunctionList.get(0);
+        System.out.print("Liste de la disjonction d'actions à l'étape " + act + ": [ ");
+        List<List<Integer>> disjunctionListAtStep0 = disjunctionList.get(act);
         System.out.print("[");
         for(int i=0; i<disjunctionListAtStep0.size(); i++){
             System.out.print("[");
@@ -329,6 +330,8 @@ public class CreationProblem {
             System.out.print("] et ");
         }
         System.out.println("]");
+        }
+        
     }
 
     public int getNbActions() {
@@ -411,6 +414,7 @@ public class CreationProblem {
                 Plan result = p.solve(problem);
                 if (result != null) {*/
                     CreationProblem cp = new CreationProblem(problem, nbSteps);
+                    cp.instantiateGoalStep(nbSteps-1);
                     System.out.println("Nb steps : " + nbSteps + "\n nb Actions possibles :" + cp.getNbActions());
                     cp.showInitialList();
                     cp.showGoalList();

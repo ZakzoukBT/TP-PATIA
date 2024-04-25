@@ -97,7 +97,6 @@ public class OurPlanner extends AbstractPlanner {
     }
 
     private boolean addClausesAtStep(ISolver solver, CreationProblem cp, int step) {
-        boolean addInitialState = addClauses(solver, cp.getInitialList());
         boolean addActions = true;
         boolean addTransitionList = true;
         boolean addDisjunctionList = true;
@@ -120,7 +119,7 @@ public class OurPlanner extends AbstractPlanner {
         List<List<Integer>> disjunctionListAtStep = cp.getDisjunctionList().get(step);
         addDisjunctionList = addDisjunctionList && addClauses(solver, disjunctionListAtStep);
         
-        return addInitialState && addActions && addTransitionList && addDisjunctionList;
+        return addActions && addTransitionList && addDisjunctionList;
     }
 
     /**
@@ -162,12 +161,14 @@ public class OurPlanner extends AbstractPlanner {
             if(initIteration){
                 cp = new CreationProblem(problem, nbStep);
                 addInitClauses(solver, cp);
+                initIteration = false;
             }
 
             cp.createActionsForStep(nbStep);
             cp.instantiateGoalStep(nbStep);
+            boolean addGoalState = addClauses(solver, cp.getGoalList());
 
-            if (!addClausesAtStep(solver, cp, nbStep)) {
+            if (!addClausesAtStep(solver, cp, nbStep) || !addGoalState) {
                 nbStep++;
                 continue;
             }
@@ -176,8 +177,50 @@ public class OurPlanner extends AbstractPlanner {
                 // Check if the solver found a satisfying assignment
                 if (solver.isSatisfiable()) {
                     Plan plan = new SequentialPlan();
-                    int[] solution = solver.findModel();
-
+                    int[] solution = solver.findModel(); 
+                    HashMap<Integer, List<Integer>> variables = new HashMap<>();
+                    int step = 0;
+                    String sol = "";
+                    String res = "";
+                    for(int i : solution){
+                        sol+= i + ", ";
+                        int index = cp.decodeIndex(i)[0];
+                        int numStep = cp.decodeIndex(i)[1];
+                        if(variables.get(numStep) != null){
+                            variables.get(numStep).add(index);
+                            //Il faut faire -1 sur ce numéro normalement !
+                        }
+                        else {
+                            ArrayList<Integer> variablesAtStep = new ArrayList<>();
+                            variablesAtStep.add(index);
+                            variables.put(numStep, variablesAtStep);
+                        }
+                    }
+                    for(int i : variables.keySet()){
+                        res +="Etape " + i + " : ";
+                        for(int j = 0; j<variables.get(i).size(); j++){
+                            int k = variables.get(i).get(j);
+                            boolean positive = variables.get(i).get(j) > 0;
+                            if(!positive){
+                                k = -1 * k;
+                            }
+                            if(k > problem.getFluents().size()){
+                                Action a = problem.getActions().get(k-1-problem.getFluents().size());
+                                if(!positive)
+                                    res += "-" + a.getName() + " : ";
+                                else
+                                    res += a.getName() + " : ";
+                                for(int var : a.getInstantiations()){
+                                    res += var + ", ";
+                                }
+                                if(j != variables.get(i).size()-1)
+                                    res += "\n";
+                            }
+                        }
+                        res +="\n\n";
+                    }
+                    System.out.println(res);
+                    System.out.println(sol);
                     // Reconstruct the plan from the solution
                     // Action action;
                     // for (int s : solution) {
