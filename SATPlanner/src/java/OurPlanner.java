@@ -158,20 +158,17 @@ public class OurPlanner extends AbstractPlanner {
             solver.newVar(VAR_COUNT);
             solver.setExpectedNumberOfClauses(CLAUSE_COUNT);
 
-            if(initIteration){
-                cp = new CreationProblem(problem, nbStep);
-                addInitClauses(solver, cp);
-                initIteration = false;
-            }
+            cp = new CreationProblem(problem, nbStep);
+            addInitClauses(solver, cp);
 
             cp.createActionsForStep(nbStep);
             cp.instantiateGoalStep(nbStep);
             boolean addGoalState = addClauses(solver, cp.getGoalList());
 
-            if (!addClausesAtStep(solver, cp, nbStep) || !addGoalState) {
+            /*if (!addClausesAtStep(solver, cp, nbStep) || !addGoalState) {
                 nbStep++;
                 continue;
-            }
+            }*/
 
             try {
                 // Check if the solver found a satisfying assignment
@@ -183,18 +180,21 @@ public class OurPlanner extends AbstractPlanner {
                     String sol = "";
                     String res = "";
                     for(int i : solution){
+                        //if(i > 0 && i > problem.getFluents().size()){
+                            int index = cp.decodeIndex(i)[0];
+                            int numStep = cp.decodeIndex(i)[1];
+                            if(variables.get(numStep) != null){
+                                variables.get(numStep).add(index);
+                                //Il faut faire -1 sur ce numéro normalement !
+                            }
+                            else {
+                                ArrayList<Integer> variablesAtStep = new ArrayList<>();
+                                variablesAtStep.add(index);
+                                variables.put(numStep, variablesAtStep);
+                            }
+                        //}
                         sol+= i + ", ";
-                        int index = cp.decodeIndex(i)[0];
-                        int numStep = cp.decodeIndex(i)[1];
-                        if(variables.get(numStep) != null){
-                            variables.get(numStep).add(index);
-                            //Il faut faire -1 sur ce numéro normalement !
-                        }
-                        else {
-                            ArrayList<Integer> variablesAtStep = new ArrayList<>();
-                            variablesAtStep.add(index);
-                            variables.put(numStep, variablesAtStep);
-                        }
+                        
                     }
                     for(int i : variables.keySet()){
                         res +="Etape " + i + " : ";

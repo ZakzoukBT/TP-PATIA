@@ -231,12 +231,12 @@ public class CreationProblem {
     }
 
     //Fonction Cantor permettant de générer un entier unique qui code une association numéro de proposition/numéro de l'étape
-    private static int getIndex(int num, int step) {
+    private int getIndex(int num, int step) {
         return (int) (0.5 * (num + step) * (num + step + 1) + step);
     }
 
     //Fonction inverse de Cantor pout obtenir le numéro de l'action (x) et l'étape (y)
-    public static int[] decodeIndex(int codage){
+    public int[] decodeIndex(int codage){
         int positive = Math.abs(codage);
         double calcul = (Math.sqrt(8 * positive + 1) - 1) / 2.0;
         int w = (int)Math.floor(calcul);
