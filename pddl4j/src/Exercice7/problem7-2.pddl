@@ -7,6 +7,7 @@
 )
 
 (:init
+    ;Description des fonctions de transition de la MT donnée en exemple
     (changeEtatDeplaceGauche t1 etat0 etat1 sB)
     (changeEtatEcritCarac t2 etat1 etatF sB s1)
     (litCaracDeplaceDroite t3 etat0 s0)
@@ -27,7 +28,6 @@
     (aDroite c3 c4)
     (aDroite c4 c5)
     (lit c1)
-    (estEtatFinal etatF)
 )
 
 (:goal (and (etatCourant etatF))

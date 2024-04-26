@@ -55,3 +55,16 @@ The library is open source. If you use it, please cite us:
 
 > D. Pellier & H. Fiorino (2017) PDDL4J: a planning domain description library for java, Journal of Experimental & Theoretical Artificial Intelligence, 30:1, 143-176
 https://doi.org/10.1080/0952813X.2017.1409278
+
+# PDDL4J exercises
+## How to launch PDDL solver on the exercises
+
+If you want to start a PDDL planner on one of the exercise, follow these instructions :
+* Put yourself in the root folder of the project
+* Write the following command in your terminal :
+`java -cp pddl4j/build/libs/pddl4j-4.0.0.jar fr.uga.pddl4j.planners.statespace.<NAME_OF_THE_PLANNER> pddl4j/src/Exercice<X>/domain<X>.pddl pddl4j/src/Exercice<X>/problem<X>.pddl`
+
+You can choose between 3 planners to solve the PDDL problem (FF, GSP, HSP).
+
+For example, if you want to launch the FastForward planner on the Graph Coloring exercise, you have to write the command :
+`java -cp pddl4j/build/libs/pddl4j-4.0.0.jar fr.uga.pddl4j.planners.statespace.FF pddl4j/src/Exercice4/domain4.pddl pddl4j/src/Exercice4/problem4.pddl`
