@@ -21,15 +21,16 @@ import java.util.HashMap;
  * @version 4.0 - 06.12.2021
  */
 public class CreationProblem {
-    // private HashMap<Integer, List<Integer>> actions;
+    //Liste des prédicats dans l'état initial
     private List<List<Integer>> initialList = new ArrayList<>();
+    //Liste des prédicats dans l'état final
     private List<List<Integer>> goalList;
-    //Clé = numéro de l'étape; Valeur = HashMap<Numéro Action, Listes précondition/effets +/effets - >
+    //HashMap associant le numéro de l'étape et la hashmap contenant le numéro d'une action, les listes de ses préconditions/effets +/effets -
     //Le premier numéro d'étape est 0, le premier numéro d'action est 1
     private HashMap<Integer, HashMap<Integer, List<List<List<Integer>>>>> stepActionsHashMap = new HashMap<>();
-    //private HashMap<Integer, List<List<List<Integer>>>> actionsHashMap = new HashMap<>();
-    //private HashMap<Integer, List<List<List<Integer>>>> actionsList = new HashMap<>();
+    //Liste des prédicats pour définir les transitions d'états
     private List<List<List<Integer>>> transitionsList = new ArrayList<>();
+    //Liste des prédicats pour définir les disjonctions d'actions
     private List<List<List<Integer>>> disjunctionList = new ArrayList<>();
     private Problem problem;
     private int nbSteps;
@@ -38,6 +39,11 @@ public class CreationProblem {
 
     public CreationProblem() {}
 
+    /**
+     * Instancie les listes de variables SAT pour l'état initial et toutes les actions jusqu'à l'étape nbSteps-1
+     * @param problem le problème à résoudre par SAT
+     * @param nbSteps le nombre d'étapes minimum à traduire en variables
+     */
     public CreationProblem(Problem problem, int nbSteps) {
         this.nbSteps = nbSteps;
         this.problem = problem;
@@ -47,13 +53,22 @@ public class CreationProblem {
         enumerateActionsForMinSteps();
     }
 
+    /**
+     * Construit la liste des clauses pour l'état state, dans la liste list, correspondant au numéro d'étape step
+     * @param state l'état à traduire en clause SAT
+     * @param list la liste des clauses SAT à remplir
+     * @param step le numéro de l'étape correspondant à l'état state
+     */
     private void constructClauseList(BitVector state, List<List<Integer>> list, int step) {
         for (int i = 0; i < nbFluents; i++) {
+            //Ajout des prédicats positifs/vrais
             if (state.get(i)) {
                 List<Integer> clause = new ArrayList<Integer>();
                 clause.add(getIndex(i + 1, step));
                 list.add(clause);
-            } else {
+            } 
+            //Ajout des prédicats négatifs/faux
+            else {
                 List<Integer> clause = new ArrayList<Integer>();
                 clause.add(-getIndex(i + 1, step));
                 list.add(clause);
@@ -61,25 +76,38 @@ public class CreationProblem {
         }
     }
 
+    /**
+     * Instancie la liste des clauses correspondant à l'état initial
+     */
     private void instantiateInitStep() {
         BitVector initState = problem.getInitialState().getPositiveFluents();
         this.constructClauseList(initState, initialList, 0);
     }
 
+    /**
+     * Instancie la liste des clauses correspondant à l'état final.
+     * @param numStep Le numéro de l'étape correspondant à l'état final
+     */
     public void instantiateGoalStep(int numStep) {
         goalList = new ArrayList<>();
         BitVector goalState = problem.getGoal().getPositiveFluents();
         this.constructClauseList(goalState, goalList, numStep);
     }
 
+    /**
+     * Instancie la hashmap correspondant aux clauses produites à chaque étape pour chaque action.
+     */
     private void enumerateActionsForMinSteps() {
+        //Itération de l'étape 0 à l'étape nbSteps-1
         for (int step = 0; step < nbSteps; step++) {
             HashMap<Integer, List<List<List<Integer>>>> actionsHashMap = new HashMap<>();
             List<List<Integer>> transitionListAtStepI = new ArrayList<>();
             List<List<Integer>> actionDisjunctionListAtStepI = new ArrayList<>();
 
+            //Itération sur toutes les actions existantes
             for (int i = 0; i < nbActions; i++) {
                 Action a = problem.getActions().get(i);
+                int numAction = nbFluents + i + 1;
                 BitVector precond = a.getPrecondition().getPositiveFluents();
                  //Prendre les effets inconditionnels
                 BitVector positiveEff = a.getUnconditionalEffect().getPositiveFluents();
@@ -89,69 +117,74 @@ public class CreationProblem {
                 List<List<Integer>> positiveEffectList = new ArrayList<>();
                 List<List<Integer>> negativeEffectList = new ArrayList<>();
 
+                //Itération sur tous les prédicats existants
                 for (int j = 0; j < nbFluents; j++) {
-                    //Adding action preconditions and effect
+                    //Ajout des clauses pour les préconditions de l'action i
                     if (precond.get(j)) {
                         List<Integer> clause = new ArrayList<Integer>();
-                        clause.add(-getIndex(nbFluents+ i + 1, step));
+                        clause.add(-getIndex(numAction, step));
                         clause.add(getIndex(j + 1, step));
                         preconditionList.add(clause);
-                    }
+                    }//Ajout des clauses pour les effets positifs de l'action i
                     List<Integer> clausePos = null;
                     if (positiveEff.get(j)) {
                         clausePos = new ArrayList<Integer>();
-                        clausePos.add(-getIndex(nbFluents+ i + 1, step));
+                        clausePos.add(-getIndex(numAction, step));
                         clausePos.add(getIndex(j + 1, step + 1));
                         positiveEffectList.add(clausePos);
-                    }
+                    } //Ajout des clauses pour les effets négatifs de l'action i
                     List<Integer> clauseNeg = null;
                     if (negativeEff.get(j)) {
                         clauseNeg = new ArrayList<Integer>();
-                        clauseNeg.add(-getIndex(nbFluents+ i + 1, step));
+                        clauseNeg.add(-getIndex(numAction, step));
                         clauseNeg.add(-getIndex(j + 1, step + 1));
                         negativeEffectList.add(clauseNeg);
                     }
-                    //Adding state transitions
+                    //Ajout des transitions d'états pour les effets positifs de l'action i
                     if(clausePos != null){
                         List<Integer> clause = new ArrayList<Integer>();
-                        clause.add(getIndex(j+1, step));
-                        clause.add(-getIndex(j+1, step+1));
-                        clause.add(getIndex(nbFluents+i+1, step));
+                        clause.add(getIndex(j + 1, step));
+                        clause.add(-getIndex(j + 1, step + 1));
+                        clause.add(getIndex(numAction, step));
                         transitionListAtStepI.add(clause);
                     }
+                    //Ajout des transitions d'états pour les effets négatifs de l'action i
                     if(clauseNeg != null){
                         List<Integer> clause = new ArrayList<Integer>();
-                        clause.add(-getIndex(j+1, step));
-                        clause.add(getIndex(j+1, step+1));
-                        clause.add(getIndex(nbFluents+i+1, step));
+                        clause.add(-getIndex(j + 1, step));
+                        clause.add(getIndex(j + 1, step + 1));
+                        clause.add(getIndex(numAction, step));
                         transitionListAtStepI.add(clause);
                     }
                 }
-                // Adding action disjunction
+
+                // Ajout des clauses pour les disjonctions d'actions
                 for(int j=0; j<nbActions; j++){
-                    Action b = problem.getActions().get(j);
-                    if(i != j && a.getName().equals(b.getName())){
+                    //Action b = problem.getActions().get(j);
+                    if(i != j){
                         List<Integer> clause = new ArrayList<Integer>();
-                        clause.add(-getIndex(nbFluents+i+1, step));
+                        clause.add(-getIndex(numAction, step));
                         clause.add(-getIndex(nbFluents+j+1, step));
                         actionDisjunctionListAtStepI.add(clause);
                     }
                 }
-                //Inserting preconditionsList and effectsList in HashMap representing each action at each step
+                //Ajout des listes de préconditions, effets positifs et effest négatifs à la hashmap de l'action
                 actionAtStepI.add(preconditionList);
                 actionAtStepI.add(positiveEffectList);
                 actionAtStepI.add(negativeEffectList);
-                //actionsList.put(getIndex(i + 1, step), actionAtStepI);
-                actionsHashMap.put(nbFluents+i+1, actionAtStepI);
-                
-                //Inserting state transitions and action disjuctions in their respective list for each action at each step 
+                actionsHashMap.put(numAction, actionAtStepI);
             }
+            //Ajout des listes de clauses pour les transitions d'états et la disjonction d'actions dans leur liste et de la hashmap de l'action dans la grande hashmap 
             transitionsList.add(transitionListAtStepI);
             disjunctionList.add(actionDisjunctionListAtStepI);
             stepActionsHashMap.put(step, actionsHashMap);
         }
     }
 
+    /**
+     * Crée la liste des clauses associées aux actions pour l'étape step
+     * @param step le numéro de l'étape pour lequel il faut écrire la liste des clauses
+     */
     public void createActionsForStep(int step) {
         HashMap<Integer, List<List<List<Integer>>>> actionsHashMap = new HashMap<>();
         List<List<Integer>> transitionListAtStepI = new ArrayList<>();
@@ -230,12 +263,25 @@ public class CreationProblem {
         stepActionsHashMap.put(step, actionsHashMap);
     }
 
-    //Fonction Cantor permettant de générer un entier unique qui code une association numéro de proposition/numéro de l'étape
+    //
+    
+    /**
+     * Fonction Cantor permettant de générer un entier unique qui code une association numéro de clause/numéro de l'étape
+     * @param num Le numéro identifiant l'action ou le prédicats dans la clause
+     * @param step Le numéro de l'étape appartenant à cette clause
+     * @return L'entier unique qui code l'action/le prédicat et son numéro d'étape associé
+     */
     private int getIndex(int num, int step) {
         return (int) (0.5 * (num + step) * (num + step + 1) + step);
     }
 
-    //Fonction inverse de Cantor pout obtenir le numéro de l'action (x) et l'étape (y)
+    //
+    
+    /**
+     * Fonction inverse de Cantor qui permet obtenir le numéro de l'action (x) et l'étape (y)
+     * @param codage L'entier codant le prédicat/l'action et son numéro d'étape
+     * @return Un tableau contenant l'identifiant du prédicat/de l'action et son numéro d'étape
+     */
     public int[] decodeIndex(int codage){
         int positive = Math.abs(codage);
         double calcul = (Math.sqrt(8 * positive + 1) - 1) / 2.0;
@@ -248,6 +294,7 @@ public class CreationProblem {
         return new int[] {x, y};
     }          
 
+    // FONCTIONS D'AFFICHAGE
     public void showInitialList() {
         System.out.print("Initial List : [");
         for (int i = 0; i < initialList.size(); i++) {
@@ -266,10 +313,13 @@ public class CreationProblem {
         System.out.println("]");
     }
 
+    /**
+     * Fonction d'affichage de la grande HashMap pour 2 étapes
+     */ 
     public void showActionsList() {
-        for(int act = 0; act < 2 ; act++){
-            HashMap<Integer, List<List<List<Integer>>>> actionsHashMap = stepActionsHashMap.get(act);
-        System.out.println("Pour l'étape n°" + act);
+        for(int etp = 0; etp < 2 ; etp++){
+            HashMap<Integer, List<List<List<Integer>>>> actionsHashMap = stepActionsHashMap.get(etp);
+        System.out.println("Pour l'étape n°" + etp);
         for (int i = 0; i < nbActions; i++) {
             System.out.println("Action n°" + (i+1));
             List<List<Integer>> precondList = actionsHashMap.get(nbFluents+i+1).get(0); //actionsList.get(getIndex(i + 1, 1)).get(0);
@@ -306,8 +356,8 @@ public class CreationProblem {
             System.out.println("]");
         }
         System.out.println();
-        System.out.print("Liste des transitions d'actions à l'étape " + act + " : [ ");
-        List<List<Integer>> transitionListAtStep0 = transitionsList.get(act);
+        System.out.print("Liste des transitions d'actions à l'étape " + etp + " : [ ");
+        List<List<Integer>> transitionListAtStep0 = transitionsList.get(etp);
         System.out.print("[");
         for(int i=0; i<transitionListAtStep0.size(); i++){
             System.out.print("[");
@@ -319,8 +369,8 @@ public class CreationProblem {
         System.out.print("]");
         System.out.println();
         System.out.println();
-        System.out.print("Liste de la disjonction d'actions à l'étape " + act + ": [ ");
-        List<List<Integer>> disjunctionListAtStep0 = disjunctionList.get(act);
+        System.out.print("Liste de la disjonction d'actions à l'étape " + etp + ": [ ");
+        List<List<Integer>> disjunctionListAtStep0 = disjunctionList.get(etp);
         System.out.print("[");
         for(int i=0; i<disjunctionListAtStep0.size(); i++){
             System.out.print("[");
@@ -414,7 +464,7 @@ public class CreationProblem {
                 Plan result = p.solve(problem);
                 if (result != null) {*/
                     CreationProblem cp = new CreationProblem(problem, nbSteps);
-                    cp.instantiateGoalStep(nbSteps-1);
+                    cp.instantiateGoalStep(nbSteps);
                     System.out.println("Nb steps : " + nbSteps + "\n nb Actions possibles :" + cp.getNbActions());
                     cp.showInitialList();
                     cp.showGoalList();

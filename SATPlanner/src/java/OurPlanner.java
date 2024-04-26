@@ -17,9 +17,8 @@ import org.sat4j.specs.ISolver;
 import org.sat4j.specs.TimeoutException;
 
 /**
- * The class is an example. It shows how to create a simple A* search planner able to
- * solve an ADL problem by choosing the heuristic to used and its weight.
- *
+ * La classe est un exemple pris depuis la librarie PDDL4J. Elle décrit un planificateur qui traduit un problème PDDL en clauses SAT et résout le problème grâce à un solveur SAT. 
+ * 
  * @author D. Pellier
  * @version 4.0 - 30.11.2021
  */
@@ -48,10 +47,10 @@ public class OurPlanner extends AbstractPlanner {
 
 
     /**
-     * Instantiates the planning problem from a parsed problem.
+     * Instancie le planning du problème depuis un problème parsé.
      *
-     * @param problem the problem to instantiate.
-     * @return the instantiated planning problem or null if the problem cannot be instantiated.
+     * @param problem le problème à instancier
+     * @return le planning du problème ou null si le problème ne peut pas être instancié.
      */
     @Override
     public Problem instantiate(DefaultParsedProblem problem) {
@@ -78,13 +77,29 @@ public class OurPlanner extends AbstractPlanner {
                     LOGGER.info("Clause with invalid format!");
                 }
             } catch (ContradictionException e) {
+                System.out.println(e.getMessage() + "for clause : " + showClause(clause, clauseList.size()));
                 return false;
             }
         }
         return true;
     }
 
-    //Il faut faire une méthode qui ajoute toutes les clauses au démarrage et une pour chaque nouvelle itération !
+    private String showClause(List<Integer> liste, int nb){
+        CreationProblem cp = new CreationProblem();
+        String res = "[";
+        for(Integer i : liste){
+            res += "(" + cp.decodeIndex(i)[0] + "," + cp.decodeIndex(i)[1] + ")";
+        }
+        res += "] in in clauseList of " + nb + " clauses.";
+        return res;
+    }
+
+    /**
+     * Ajoute les clauses de l'état initial et de toutes les actions jusqu'à l'étape maximum du problème au solveur.
+     * @param solver Le solveur SAT.
+     * @param cp Le problème traduit en clause SAT.
+     * @return vrai si les clauses ont pu être ajoutées au solveur, faux sinon.
+     */
     private boolean addInitClauses(ISolver solver, CreationProblem cp) {
         boolean addInitialState = addClauses(solver, cp.getInitialList());
         boolean addActions = true;
@@ -96,21 +111,31 @@ public class OurPlanner extends AbstractPlanner {
         return addInitialState && addActions;
     }
 
+    /**
+     * Ajoute les clauses au solveur pour l'étape step.
+     * @param solver Le solveur SAT.
+     * @param cp Le problème traduit en clauses SAT
+     * @param step L'étape pour laquelle les clauses sont ajoutées dans SAT
+     * @return
+     */
     private boolean addClausesAtStep(ISolver solver, CreationProblem cp, int step) {
         boolean addActions = true;
         boolean addTransitionList = true;
         boolean addDisjunctionList = true;
         
         HashMap<Integer, List<List<List<Integer>>>> actionsHashMap = cp.getStepActionsHashMap().get(step);
+        //Ajout des clauses concernant les préconditions, effets positifs et effets négatifs de l'action i
         for (int i = 0; i < cp.getNbActions(); i++) {
             List<List<Integer>> precondList = actionsHashMap.get(cp.getNbFluents()+i+1).get(0);
             addActions = addClauses(solver, precondList);
 
             List<List<Integer>> posEffectList = actionsHashMap.get(cp.getNbFluents()+i+1).get(1); //actionsList.get(getIndex(i + 1, 1)).get(1);
-            addActions = addActions && addClauses(solver, posEffectList);
+            if(posEffectList != null)
+                addActions = addActions && addClauses(solver, posEffectList);
 
             List<List<Integer>> negEffectList = actionsHashMap.get(cp.getNbFluents()+i+1).get(2); //actionsList.get(getIndex(i + 1, 1)).get(2);
-            addActions = addActions && addClauses(solver, negEffectList);
+            if(negEffectList != null)
+                addActions = addActions && addClauses(solver, negEffectList);
         }
         
         List<List<Integer>> transitionListAtStep = cp.getTransitionsList().get(step);
@@ -123,26 +148,19 @@ public class OurPlanner extends AbstractPlanner {
     }
 
     /**
-     * Search a solution plan to a specified domain and problem using A*.
+     * Trouve une solution au problème problem à l'aide d'un solveur SAT
      *
-     * @param problem the problem to solve.
-     * @return the plan found or null if no plan was found.
+     * @param problem le problème à résoudre
+     * @return le plan trouvé ou null si aucun plan n'est trouvé
      */
     @Override
     public Plan solve(final Problem problem) {
-        // Creates the A* search strategy
-        //C'est ici que l'on peut changer la stratégie de recherche d'une solution !
         LOGGER.info("* Starting search \n");
 
         problem.instantiate();
         FastForward ff = new FastForward(problem);
         State init = new State(problem.getInitialState());
         int nbStep = ff.estimate(init, problem.getGoal());
-
-        List<Fluent> fluents = new ArrayList<>(problem.getFluents());
-        List<Action> actions = new ArrayList<>(problem.getActions());
-
-        CreationProblem cp = new CreationProblem();
 
         // Start the search timer
         long searchTimeStart = System.currentTimeMillis();
@@ -158,17 +176,17 @@ public class OurPlanner extends AbstractPlanner {
             solver.newVar(VAR_COUNT);
             solver.setExpectedNumberOfClauses(CLAUSE_COUNT);
 
-            cp = new CreationProblem(problem, nbStep);
+            CreationProblem cp = new CreationProblem(problem, nbStep);
             addInitClauses(solver, cp);
 
-            cp.createActionsForStep(nbStep);
+            //cp.createActionsForStep(nbStep);
             cp.instantiateGoalStep(nbStep);
             boolean addGoalState = addClauses(solver, cp.getGoalList());
 
-            /*if (!addClausesAtStep(solver, cp, nbStep) || !addGoalState) {
-                nbStep++;
-                continue;
-            }*/
+            if (/*!addClausesAtStep(solver, cp, nbStep) ||*/ !addGoalState) {
+                System.out.println("Probleme ?");
+                //nbStep++;
+            }
 
             try {
                 // Check if the solver found a satisfying assignment
@@ -180,47 +198,13 @@ public class OurPlanner extends AbstractPlanner {
                     String sol = "";
                     String res = "";
                     for(int i : solution){
-                        //if(i > 0 && i > problem.getFluents().size()){
-                            int index = cp.decodeIndex(i)[0];
-                            int numStep = cp.decodeIndex(i)[1];
-                            if(variables.get(numStep) != null){
-                                variables.get(numStep).add(index);
-                                //Il faut faire -1 sur ce numéro normalement !
-                            }
-                            else {
-                                ArrayList<Integer> variablesAtStep = new ArrayList<>();
-                                variablesAtStep.add(index);
-                                variables.put(numStep, variablesAtStep);
-                            }
-                        //}
-                        sol+= i + ", ";
-                        
-                    }
-                    for(int i : variables.keySet()){
-                        res +="Etape " + i + " : ";
-                        for(int j = 0; j<variables.get(i).size(); j++){
-                            int k = variables.get(i).get(j);
-                            boolean positive = variables.get(i).get(j) > 0;
-                            if(!positive){
-                                k = -1 * k;
-                            }
-                            if(k > problem.getFluents().size()){
-                                Action a = problem.getActions().get(k-1-problem.getFluents().size());
-                                if(!positive)
-                                    res += "-" + a.getName() + " : ";
-                                else
-                                    res += a.getName() + " : ";
-                                for(int var : a.getInstantiations()){
-                                    res += var + ", ";
-                                }
-                                if(j != variables.get(i).size()-1)
-                                    res += "\n";
-                            }
+                        int index = cp.decodeIndex(i)[0];
+                        int numStep = cp.decodeIndex(i)[1];
+                        if(index > cp.getNbFluents()){
+                            index -= (1 + cp.getNbFluents());
+                            plan.add(numStep, problem.getActions().get(index));
                         }
-                        res +="\n\n";
                     }
-                    System.out.println(res);
-                    System.out.println(sol);
                     // Reconstruct the plan from the solution
                     // Action action;
                     // for (int s : solution) {
