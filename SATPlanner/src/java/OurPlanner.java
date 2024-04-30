@@ -77,6 +77,31 @@ public class OurPlanner extends AbstractPlanner {
                     LOGGER.info("Clause with invalid format!");
                 }
             } catch (ContradictionException e) {
+                System.out.println(e.getMessage());
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Adds clauses to the SAT solver.
+     *
+     * @param solver      The SAT solver instance.
+     * @param clauses     List of clauses to add.
+     */
+    private boolean newAddClauses(ISolver solver, List<int[]> clauseList) {
+        for (int[] clause : clauseList) {
+            try {
+                // Check if the clause is non-empty
+                if (clause.length > 0) {
+                    // Add the clause to the solver
+                    solver.addClause(new VecInt(clause));
+                } else {
+                    // Log a message if the clause has an invalid format
+                    LOGGER.info("Clause with invalid format!");
+                }
+            } catch (ContradictionException e) {
                 System.out.println(e.getMessage() + "for clause : " + showClause(clause, clauseList.size()));
                 return false;
             }
@@ -84,11 +109,11 @@ public class OurPlanner extends AbstractPlanner {
         return true;
     }
 
-    private String showClause(List<Integer> liste, int nb){
+    private String showClause(int[] liste, int nb){
         CreationProblem cp = new CreationProblem();
         String res = "[";
-        for(Integer i : liste){
-            res += "(" + cp.decodeIndex(i)[0] + "," + cp.decodeIndex(i)[1] + ")";
+        for(int i=0; i< liste.length; i++){
+            res += "(" + cp.decodeIndex(liste[i])[0] + "," + cp.decodeIndex(liste[i])[1] + ")";
         }
         res += "] in in clauseList of " + nb + " clauses.";
         return res;
@@ -101,50 +126,20 @@ public class OurPlanner extends AbstractPlanner {
      * @return vrai si les clauses ont pu être ajoutées au solveur, faux sinon.
      */
     private boolean addInitClauses(ISolver solver, CreationProblem cp) {
-        boolean addInitialState = addClauses(solver, cp.getInitialList());
-        boolean addActions = true;
-
-        for(int step=0; step < cp.getNbSteps(); step++) {
-            addActions = addActions && addClausesAtStep(solver, cp, step);
-        }
-        
-        return addInitialState && addActions;
-    }
-
-    /**
-     * Ajoute les clauses au solveur pour l'étape step.
-     * @param solver Le solveur SAT.
-     * @param cp Le problème traduit en clauses SAT
-     * @param step L'étape pour laquelle les clauses sont ajoutées dans SAT
-     * @return
-     */
-    private boolean addClausesAtStep(ISolver solver, CreationProblem cp, int step) {
+        boolean addInitialState = newAddClauses(solver, cp.getInitialList());
         boolean addActions = true;
         boolean addTransitionList = true;
         boolean addDisjunctionList = true;
-        
-        HashMap<Integer, List<List<List<Integer>>>> actionsHashMap = cp.getStepActionsHashMap().get(step);
-        //Ajout des clauses concernant les préconditions, effets positifs et effets négatifs de l'action i
-        for (int i = 0; i < cp.getNbActions(); i++) {
-            List<List<Integer>> precondList = actionsHashMap.get(cp.getNbFluents()+i+1).get(0);
-            addActions = addClauses(solver, precondList);
 
-            List<List<Integer>> posEffectList = actionsHashMap.get(cp.getNbFluents()+i+1).get(1); //actionsList.get(getIndex(i + 1, 1)).get(1);
-            if(posEffectList != null)
-                addActions = addActions && addClauses(solver, posEffectList);
-
-            List<List<Integer>> negEffectList = actionsHashMap.get(cp.getNbFluents()+i+1).get(2); //actionsList.get(getIndex(i + 1, 1)).get(2);
-            if(negEffectList != null)
-                addActions = addActions && addClauses(solver, negEffectList);
+        for(int step = 0; step < cp.getNbSteps(); step++){
+            List<int[]> clausesList = cp.getStepHashMap().get(step);
+            addActions = addActions && newAddClauses(solver, clausesList);
         }
-        
-        List<List<Integer>> transitionListAtStep = cp.getTransitionsList().get(step);
-        addTransitionList = addTransitionList && addClauses(solver, transitionListAtStep);
 
-        List<List<Integer>> disjunctionListAtStep = cp.getDisjunctionList().get(step);
-        addDisjunctionList = addDisjunctionList && addClauses(solver, disjunctionListAtStep);
-        
-        return addActions && addTransitionList && addDisjunctionList;
+        addTransitionList = newAddClauses(solver, cp.getTransitionsList());
+        addDisjunctionList = newAddClauses(solver, cp.getDisjunctionList());
+    
+        return addInitialState && addActions && addTransitionList && addDisjunctionList;
     }
 
     /**
@@ -159,13 +154,12 @@ public class OurPlanner extends AbstractPlanner {
 
         problem.instantiate();
         FastForward ff = new FastForward(problem);
-        State init = new State(problem.getInitialState());
-        int nbStep = ff.estimate(init, problem.getGoal());
+        State initial = new State(problem.getInitialState());
+        int nbStep = ff.estimate(initial, problem.getGoal());
 
         // Start the search timer
         long searchTimeStart = System.currentTimeMillis();
 
-        boolean initIteration = true;
         // Continue the search until the time limit is reached
         while (System.currentTimeMillis() - searchTimeStart <= MAX_TIMER) {
 
@@ -177,15 +171,13 @@ public class OurPlanner extends AbstractPlanner {
             solver.setExpectedNumberOfClauses(CLAUSE_COUNT);
 
             CreationProblem cp = new CreationProblem(problem, nbStep);
-            addInitClauses(solver, cp);
+            boolean addClauses = addInitClauses(solver, cp);
 
-            //cp.createActionsForStep(nbStep);
             cp.instantiateGoalStep(nbStep);
-            boolean addGoalState = addClauses(solver, cp.getGoalList());
+            boolean addGoalState = newAddClauses(solver, cp.getGoalList());
 
-            if (/*!addClausesAtStep(solver, cp, nbStep) ||*/ !addGoalState) {
+            if (!addClauses || !addGoalState) {
                 System.out.println("Probleme ?");
-                //nbStep++;
             }
 
             try {
@@ -193,10 +185,6 @@ public class OurPlanner extends AbstractPlanner {
                 if (solver.isSatisfiable()) {
                     Plan plan = new SequentialPlan();
                     int[] solution = solver.findModel(); 
-                    HashMap<Integer, List<Integer>> variables = new HashMap<>();
-                    int step = 0;
-                    String sol = "";
-                    String res = "";
                     for(int i : solution){
                         int index = cp.decodeIndex(i)[0];
                         int numStep = cp.decodeIndex(i)[1];

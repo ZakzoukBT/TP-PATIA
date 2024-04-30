@@ -7,4 +7,7 @@ Pour exécuter avec le problème 1 et le domaine du benchmark ipc1998/grid/strip
 `java -cp classes:lib/pddl4j-4.0.0.jar:lib/org.sat4j.core.jar OurPlanner "../pddl4j/src/test/resources/benchmarks/pddl/ipc1998/grid/strips-untyped/domain.pddl" "../pddl4j/src/test/resources/benchmarks/pddl/ipc1998/grid/strips-untyped/p01.pddl"`
 
 Pour tester sur un exemple simple : 
-`java -cp classes:lib/pddl4j-4.0.0.jar:lib/org.sat4j.core.jar OurPlanner "../pddl4j/src/Exercice5/domain5.pddl" "../pddl4j/src/Exercice5/problem5.pddl"`
+`java -cp classes:lib/pddl4j-4.0.0.jar:lib/org.sat4j.core.jar OurPlanner ../pddl4j/src/Exercice5/domain5.pddl ../pddl4j/src/Exercice5/problem5.pddl`
+
+Pour augmenter la taille de la mémoire de la JVM : 
+`java -Xms2048m -Xmx2048m -cp ...`
