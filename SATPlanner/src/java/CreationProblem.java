@@ -25,7 +25,6 @@ public class CreationProblem {
     //HashMap associant le numéro de l'étape et la hashmap contenant le numéro d'une action, les listes de ses préconditions/effets +/effets -
     //Le premier numéro d'étape est 0, le premier numéro d'action est 1
     private HashMap<Integer, List<int[]>> stepHashMap = new HashMap<>();
-    private HashMap<Integer, HashMap<Integer, List<List<List<Integer>>>>> stepActionsHashMap = new HashMap<>();
     //Liste des prédicats pour définir les transitions d'états
     private List<int[]> transitionsList = new ArrayList<>();
     //Liste des prédicats pour définir les disjonctions d'actions
@@ -87,14 +86,7 @@ public class CreationProblem {
     public void instantiateGoalStep(int numStep) {
         goalList = new ArrayList<>();
         BitVector goalState = problem.getGoal().getPositiveFluents();
-        //this.constructClauseList(goalState, goalList, numStep);
-        for (int i = 0; i < nbFluents; i++) {
-            //Ajout des prédicats positifs/vrais
-            if (goalState.get(i)) {
-                int[] clause = new int[]{ getIndex(i + 1, numStep) };
-                goalList.add(clause);
-            } 
-        }
+        this.constructClauseList(goalState, goalList, numStep);
     }
 
     /**
@@ -165,8 +157,6 @@ public class CreationProblem {
     private int getIndex(int num, int step) {
         return (int) (0.5 * (num + step) * (num + step + 1) + step);
     }
-
-    //
     
     /**
      * Fonction inverse de Cantor qui permet obtenir le numéro de l'action (x) et l'étape (y)
@@ -205,7 +195,7 @@ public class CreationProblem {
     }
 
     /**
-     * Fonction d'affichage de la grande HashMap pour 2 étapes
+     * Fonction d'affichage de la hashMap pour 2 étapes
      */ 
     public void showStepHashMap() {
         for(int step=0; step < 2; step++){
@@ -289,9 +279,6 @@ public class CreationProblem {
         return disjunctionList;
     }
 
-    public HashMap<Integer, HashMap<Integer, List<List<List<Integer>>>>> getStepActionsHashMap() {
-        return stepActionsHashMap;
-    }
   
 
     /**
@@ -342,9 +329,6 @@ public class CreationProblem {
                 cp.showGoalList();
                 cp.enumerateActionsForMinSteps();
                 cp.showStepHashMap();
-                //cp.showDisjunctionList();
-                //cp.showTransitionsList();
-                //cp.showActionsList();
             }
         // This exception could happen if the domain or the problem does not exist
         } catch (FileNotFoundException e) {

@@ -43,7 +43,7 @@ public class OurPlanner extends AbstractPlanner {
 
     private final int CLAUSE_COUNT = 100000;
 
-    private final long MAX_TIMER = 10 * 60 * 1000; // 10 minutes in milliseconds
+    private final long MAX_TIMER = 10 * 60 * 1000; // 10 minutes en millisecondes
 
 
     /**
@@ -60,63 +60,27 @@ public class OurPlanner extends AbstractPlanner {
     }
 
     /**
-     * Adds clauses to the SAT solver.
-     *
-     * @param solver      The SAT solver instance.
-     * @param clauses     List of clauses to add.
+     * Ajoute les clauses de la clauseList au solveur SAT
+     * @param solver Le solveur SAT
+     * @param clauses La liste des clauses à ajouter
      */
-    private boolean addClauses(ISolver solver, List<List<Integer>> clauseList) {
-        for (List<Integer> clause : clauseList) {
+    private boolean addClauses(ISolver solver, List<int[]> clauseList) {
+        for (int[] clause : clauseList) {
             try {
-                // Check if the clause is non-empty
-                if (clause.size() > 0) {
-                    // Add the clause to the solver
-                    solver.addClause(new VecInt(clause.stream().mapToInt(Integer::intValue).toArray()));
-                } else {
-                    // Log a message if the clause has an invalid format
+                // Si la clause n'est pas vide on l'ajoute au solveur
+                if (clause.length > 0) {
+                    solver.addClause(new VecInt(clause));
+                } 
+                else {
                     LOGGER.info("Clause with invalid format!");
                 }
-            } catch (ContradictionException e) {
+            } 
+            catch (ContradictionException e) {
                 System.out.println(e.getMessage());
                 return false;
             }
         }
         return true;
-    }
-
-    /**
-     * Adds clauses to the SAT solver.
-     *
-     * @param solver      The SAT solver instance.
-     * @param clauses     List of clauses to add.
-     */
-    private boolean newAddClauses(ISolver solver, List<int[]> clauseList) {
-        for (int[] clause : clauseList) {
-            try {
-                // Check if the clause is non-empty
-                if (clause.length > 0) {
-                    // Add the clause to the solver
-                    solver.addClause(new VecInt(clause));
-                } else {
-                    // Log a message if the clause has an invalid format
-                    LOGGER.info("Clause with invalid format!");
-                }
-            } catch (ContradictionException e) {
-                System.out.println(e.getMessage() + "for clause : " + showClause(clause, clauseList.size()));
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private String showClause(int[] liste, int nb){
-        CreationProblem cp = new CreationProblem();
-        String res = "[";
-        for(int i=0; i< liste.length; i++){
-            res += "(" + cp.decodeIndex(liste[i])[0] + "," + cp.decodeIndex(liste[i])[1] + ")";
-        }
-        res += "] in in clauseList of " + nb + " clauses.";
-        return res;
     }
 
     /**
@@ -126,65 +90,67 @@ public class OurPlanner extends AbstractPlanner {
      * @return vrai si les clauses ont pu être ajoutées au solveur, faux sinon.
      */
     private boolean addInitClauses(ISolver solver, CreationProblem cp) {
-        boolean addInitialState = newAddClauses(solver, cp.getInitialList());
+        boolean addInitialState = addClauses(solver, cp.getInitialList());
         boolean addActions = true;
         boolean addTransitionList = true;
         boolean addDisjunctionList = true;
 
         for(int step = 0; step < cp.getNbSteps(); step++){
             List<int[]> clausesList = cp.getStepHashMap().get(step);
-            addActions = addActions && newAddClauses(solver, clausesList);
+            addActions = addActions && addClauses(solver, clausesList);
         }
 
-        addTransitionList = newAddClauses(solver, cp.getTransitionsList());
-        addDisjunctionList = newAddClauses(solver, cp.getDisjunctionList());
+        addTransitionList = addClauses(solver, cp.getTransitionsList());
+        addDisjunctionList = addClauses(solver, cp.getDisjunctionList());
     
         return addInitialState && addActions && addTransitionList && addDisjunctionList;
     }
 
     /**
      * Trouve une solution au problème problem à l'aide d'un solveur SAT
-     *
      * @param problem le problème à résoudre
      * @return le plan trouvé ou null si aucun plan n'est trouvé
      */
     @Override
     public Plan solve(final Problem problem) {
         LOGGER.info("* Starting search \n");
-
         problem.instantiate();
+
         FastForward ff = new FastForward(problem);
         State initial = new State(problem.getInitialState());
         int nbStep = ff.estimate(initial, problem.getGoal());
 
-        // Start the search timer
+        // Démarrage du timer
         long searchTimeStart = System.currentTimeMillis();
 
-        // Continue the search until the time limit is reached
+        // Recherche effectuée tant que le timer ne dépasse pas 10min
         while (System.currentTimeMillis() - searchTimeStart <= MAX_TIMER) {
 
             System.out.println("Starting step " + nbStep);
 
-            // Create a new solver instance
+            // Création du soveur
             ISolver solver = SolverFactory.newDefault();
             solver.newVar(VAR_COUNT);
             solver.setExpectedNumberOfClauses(CLAUSE_COUNT);
 
+            //Initialisation du problème PDDL en clauses SAT
             CreationProblem cp = new CreationProblem(problem, nbStep);
-            boolean addClauses = addInitClauses(solver, cp);
 
+            //Ajout des clauses SAT du problème traduit au solveur
+            boolean addClauses = addInitClauses(solver, cp);
             cp.instantiateGoalStep(nbStep);
-            boolean addGoalState = newAddClauses(solver, cp.getGoalList());
+            boolean addGoalState = addClauses(solver, cp.getGoalList());
 
             if (!addClauses || !addGoalState) {
                 System.out.println("Probleme ?");
             }
 
             try {
-                // Check if the solver found a satisfying assignment
+                // Vérifie si une solution est trouvée par le solveur SAT
                 if (solver.isSatisfiable()) {
                     Plan plan = new SequentialPlan();
                     int[] solution = solver.findModel(); 
+                    // Traduction de la solution trouvée en actions initiales du problème PDDL
                     for(int i : solution){
                         int index = cp.decodeIndex(i)[0];
                         int numStep = cp.decodeIndex(i)[1];
@@ -193,33 +159,16 @@ public class OurPlanner extends AbstractPlanner {
                             plan.add(numStep, problem.getActions().get(index));
                         }
                     }
-                    // Reconstruct the plan from the solution
-                    // Action action;
-                    // for (int s : solution) {
-                    //     for (SatVariable v : variables) {
-                    //         if (!v.isFluent() && v.getName() == s) {
-                    //             int index = (v.getName() % variableSize == 0) ?
-                    //                     actions.size() - 1 :
-                    //                     (v.getName() % variableSize) - fluents.size() - 1;
-
-                    //             action = actions.get(index);
-                    //             plan.add(v.getStep(), action);
-                    //             break;
-                    //         }
-                    //     }
-                    // }
-
                     LOGGER.info("\nPlan found in {} seconds\n", ((float) (System.currentTimeMillis() - searchTimeStart) / 600));
                     return plan;
                 }
 
-                nbStep++; // Increment step count for next iteration
+                nbStep++; // On incrémente le nombre d'étapes de recherche de 1
             } catch (TimeoutException e) {
                 throw new RuntimeException(e);
             }
         }
         
-        // Log a message if the search timeout is exceeded
         LOGGER.info("Search timeout: " + (MAX_TIMER / 60000) + " minutes exceeded");
         return null;
     }

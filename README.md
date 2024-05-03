@@ -1,7 +1,8 @@
 # Projet TP PATIA
 ## Introduction
-Ce projet est destiné à l'UE Planification Automatique et ... du Semestre 2 du M1 Informatique de l'Université Grenoble Alpes.
+Ce projet est destiné à l'UE Planification Automatique et Techniques d'IA du Semestre 2 du M1 Informatique de l'Université Grenoble Alpes.
 Il est écrit par BEN TANFOUS Zakaria et PELLEGRIN Noémie.
+
 Ce projet est séparé en trois dossiers :
 * pddl4j pour les exercices 1 à 7. Il contient la librairie pddl4j ainsi que les fichiers PDDL domaine et problème associés à chaque exercice; 
 * SATPlanner pour l'exercice 8 sur le planner SAT. Il contient les librairies pddl4j et sat4j en fichier jar pour faire fonctionner les programmes java CreationProblem.java et OurPlanner.java qui traduisent un problème PDDL en problème SAT et qui récupèrent la solution donnée par le solveur SAT;
@@ -17,7 +18,7 @@ Vous devez choisir le planner que vous souhaitez utiliser pour résoudre le prob
 ### Pour le sokoban
 Vous devez choisir le problème sokoban à résoudre parmi tous ceux présents dans le dossier sokoban/config/ et lancer les commandes suivantes :
 * `cd sokoban/`
-* `./script-lancement.sh` et suivre les instructions du script.
+* `./script_lancement.sh` et suivre les instructions du script.
 
 ### Pour le SAT solveur
 Déplacez-vous dans le dossier associé à l'exercice :
@@ -28,3 +29,7 @@ Pour compiler, écrivez la commande :
 
 Pour exécuter le solveur SAT, choisissez un exemple de domaine et problem PDDL à tester parmi ceux contenu dans le dossier pddl4j/src/test/resources/pddl/ et lancez : 
 `java -cp classes:lib/pddl4j-4.0.0.jar:lib/org.sat4j.core.jar OurPlanner "../<CHEMIN_VERS_LE_DOMAIN_PDDL>" "../<CHEMIN_VERS_LE_PROBLEME_PDDL>"`
+
+Par exemple, pour lancer le solveur SAT sur l'exemple du robot ménager donné dans la consigne, exécutez la commande : 
+`java -cp classes:lib/pddl4j-4.0.0.jar:lib/org.sat4j.core.jar OurPlanner "../pddl4j/src/Exercice8/domain.pddl" "../pddl4j/src/Exercice8/problem.pddl"`
+Cet exemple est actuellement le seul fonctionnel pour l'exercice du solveur SAT.

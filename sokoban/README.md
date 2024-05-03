@@ -35,5 +35,3 @@ See planning solutions at http://localhost:8888/test.html
 java -cp pddl4j/build/libs/pddl4j-4.0.0.jar fr.uga.pddl4j.planners.statespace.FF \
    sokoban/src/pddlSokoban/domain.pddl \
    sokoban/src/pddlSokoban/problemPDDL.pddl
-
-& 'C:\Program Files\Java\jre-1.8\bin\java.exe' '-cp' 'C:\Users\zakar\AppData\Local\Temp\cp_ck3gl3hnfy5jtj497b3pcd588.jar' 'sokoban.Parser' 

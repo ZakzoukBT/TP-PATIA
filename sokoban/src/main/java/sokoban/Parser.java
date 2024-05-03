@@ -84,8 +84,8 @@ public class Parser {
 
     /**
      * Retourne une chaîne de caractère qui décrit les objects présents dans le problème PDDL.
-     * @param objects
-     * @return 
+     * @param objects la hashmap comportant les coordonnées des objets du plateau de jeu
+     * @return la chaîne de caractère qui décrit les objets et leurs types dans le problème PDDL
      */
     public String writeObjects(HashMap<Integer[], Character> objects) {
         String res = "(:objects ";
@@ -134,9 +134,9 @@ public class Parser {
 
     /**
      * A partir des coordonnées des différents objets et du nombre de lignes et colonnes du plateau de jeu, initialise un tableau de jeu avec tous les objets précis présents.
-     * @param objects
-     * @param nbLignes
-     * @param nbColonnes
+     * @param objects la hashmap comportant les coordonnées des objets du plateau de jeu
+     * @param nbLignes le nombre de lignes du plateau de jeu
+     * @param nbColonnes le nombre de colonnes du plateau de jeu
      * @return Un tableau à 2 dimensions contenant les objets présents dans le fichier PDDL, placés aux coordonnées données par la Hashmap.
      * @throws IOException
      * @throws ParseException
@@ -182,7 +182,7 @@ public class Parser {
 
     /**
      * Crée la chaîne de caractère qui décrit les prédicats initiaux du problème PDDL à partir du tableau du plateau de jeu contenant les différents objets.
-     * @param objects
+     * @param objects le tableau à 2 dimensions représentant le plateau de jeu et ses éléments
      * @return La description des prédicats initiaux du problème PDDL.
      */
     public String writeInitConditions(String[][] objects){
@@ -239,7 +239,7 @@ public class Parser {
 
     /**
      * Crée la chaîne de caractère qui détaille le but final du problème PDDL.
-     * @param objects
+     * @param objects le tableau à 2 dimensions représentant le plateau de jeu et ses éléments
      * @return La chaîne de caractère décrivant le but du problème PDDL.
      */
     public String writeGoalConditions(String[][] objects){
@@ -309,7 +309,7 @@ public class Parser {
 
     /**
      * Traduit la solution au problème obtenue avec le planificateur en commandes lisibles par le serveur web.
-     * @param p
+     * @param p le plan trouvé par le solveur PDDL
      * @return La chaîne de caractère qui décrit les actions de la solution à réaliser.
      */
     public String getStringSolution(Plan p){
@@ -375,7 +375,6 @@ public class Parser {
         p.parseProblemJSONToPDDL();
         Plan res = p.getPDDLResult();
         String solution = p.getStringSolution(res);
-        //for (char c : solution.toCharArray()) System.out.println(c);
         try {
             FileWriter fw = new FileWriter(new File("./src/pddlSokoban/Resultat.txt"));
             for (char c : solution.toCharArray()) fw.write(""+c);
